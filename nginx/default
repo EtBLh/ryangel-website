@@ -1,0 +1,30 @@
+server {
+    listen 80;
+    server_name localhost;
+    
+    # Disable caching for development
+    location ~ ^/api/media/(.*)$ {
+        alias /var/www/media/$1;
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+    }
+    
+    # Proxy to local Go dev server
+    location /api/ {
+        proxy_pass http://localhost:8080;  # Go dev server
+        proxy_set_header Host $host;
+    }
+
+    location / {
+        proxy_pass http://localhost:5173;  # frontend dev server
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade; 
+        proxy_set_header Connection "Upgrade"; 
+        proxy_set_header Host $host;
+    }
+    
+    # Enable detailed logging
+    access_log /var/log/nginx/dev_access.log combined buffer=32k flush=5s;
+    error_log /var/log/nginx/dev_error.log debug;
+}
