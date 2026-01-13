@@ -68,6 +68,7 @@
 }
 
 body {
+  background-color: var(--background);
   color: #1F3D39;
   font-family: "Chiron GoRound TC", sans-serif;
   font-optical-sizing: auto;

@@ -29,6 +29,10 @@ type Config struct {
 	TwilioPhoneNumber string
 	SkipSMSSending   bool
 	MediaStoragePath string
+
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURL  string
 }
 
 // FromEnv constructs Config from environment variables with sensible defaults.
@@ -43,13 +47,16 @@ func FromEnv() (*Config, error) {
 		DBPassword: os.Getenv("DB_PASSWORD"),
 		DBName:     getEnv("DB_NAME", "postgres"),
 		SSLMode:    getEnv("DB_SSLMODE", "disable"),
-		TokenTTLMinutes: getEnvAsInt("TOKEN_TTL_MINUTES", 60),
+		TokenTTLMinutes: getEnvAsInt("TOKEN_TTL_MINUTES", 1440),
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
 		TwilioAccountSID: os.Getenv("TWILIO_ACCOUNT_SID"),
 		TwilioAuthToken:  os.Getenv("TWILIO_AUTH_TOKEN"),
 		TwilioPhoneNumber: os.Getenv("TWILIO_PHONE_NUMBER"),
 		SkipSMSSending:   getEnvAsBool("SKIP_SMS_SENDING", false),
 		MediaStoragePath: getEnv("MEDIA_STORAGE_PATH", "./media"),
+		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/auth/google/callback"),
 	}
 
 	if cfg.DBPassword == "" {

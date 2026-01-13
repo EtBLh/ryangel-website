@@ -15,8 +15,8 @@ type EbuyStoreHandler struct {
 
 // Register wires the ebuy store routes onto the router.
 func (h EbuyStoreHandler) Register(rg *gin.RouterGroup) {
-	rg.GET("/stores", h.GetEbuyStores)
-	rg.GET("/stores/:store_id", h.GetEbuyStore)
+	rg.GET("/ebuystores", h.GetEbuyStores)
+	rg.GET("/ebuystores/:store_id", h.GetEbuyStore)
 }
 
 // GetEbuyStores handles GET /stores.

@@ -1,11 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
+    "fmt"
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
+	"golang.org/x/oauth2"
+    "golang.org/x/oauth2/google"
 
 	"github.com/ryangel/ryangel-backend/internal/config"
 	httpmw "github.com/ryangel/ryangel-backend/internal/http/middleware"
@@ -46,7 +52,10 @@ func (h AuthHandler) RegisterClientRoutes(rg *gin.RouterGroup) {
 }
 
 type loginRequest struct {
-	Phone string `json:"phone" binding:"required"`
+	Phone    string `json:"phone"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	CartID   string `json:"cart_id"`
 }
 
 type adminLoginRequest struct {
@@ -58,17 +67,20 @@ type adminLoginRequest struct {
 type registerRequest struct {
 	Phone    string  `json:"phone" binding:"required"`
 	Email    *string `json:"email"`
-	Username *string `json:"username"`
+	Username string  `json:"username" binding:"required"`
+	Password string  `json:"password" binding:"required"`
 }
 
 type updateClientRequest struct {
 	Email    *string `json:"email"`
 	Username *string `json:"username"`
+	DateOfBirth *string `json:"date_of_birth"` // YYYY-MM-DDT00:00:00Z
 }
 
 type verifyOTPRequest struct {
-	Phone string `json:"phone" binding:"required"`
-	OTP   string `json:"otp" binding:"required,len=6"`
+	Phone  string `json:"phone" binding:"required"`
+	OTP    string `json:"otp" binding:"required,len=6"`
+	CartID string `json:"cart_id"`
 }
 
 func (r adminLoginRequest) identifier() string {
@@ -146,26 +158,18 @@ func (h AuthHandler) clientRegister(c *gin.Context) {
 		return
 	}
 
-	client, err := h.Service.ClientRegister(c.Request.Context(), req.Phone, req.Email, req.Username)
+	client, err := h.Service.ClientRegister(c.Request.Context(), req.Phone, req.Email, req.Username, req.Password)
 	if err != nil {
-		if strings.Contains(err.Error(), "already registered") {
-			writeError(c, http.StatusConflict, "CLIENT_EXISTS", "Phone number already registered.", nil)
+		if strings.Contains(err.Error(), "already registered") || strings.Contains(err.Error(), "username already taken") {
+			writeError(c, http.StatusConflict, "CLIENT_EXISTS", err.Error(), nil)
 			return
 		}
 		writeError(c, http.StatusInternalServerError, "REGISTRATION_ERROR", "Unable to register right now.", nil)
 		return
 	}
 
-	// Send OTP after successful registration
-	err = h.Service.ClientLogin(c.Request.Context(), req.Phone)
-	if err != nil {
-		writeError(c, http.StatusInternalServerError, "OTP_SEND_ERROR", "Registration successful but unable to send OTP.", nil)
-		return
-	}
-
 	c.JSON(http.StatusCreated, gin.H{
-		"client": client,
-		"message":       "Client registered and OTP sent to " + req.Phone,
+		"message": "OTP sent to " + *client.Phone,
 		"otp_expires_in": 300,
 	})
 }
@@ -174,6 +178,30 @@ func (h AuthHandler) clientLogin(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		writeValidationError(c, err)
+		return
+	}
+
+	if req.Password != "" {
+		identifier := req.Phone
+		if identifier == "" {
+			identifier = req.Username
+		}
+		if identifier == "" {
+			writeValidationError(c, errors.New("phone or username required for password login"))
+			return
+		}
+
+		result, err := h.Service.ClientLoginPassword(c.Request.Context(), identifier, req.Password, req.CartID)
+		if err != nil {
+			writeError(c, http.StatusUnauthorized, "LOGIN_FAILED", "Invalid credentials", nil)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"token":      result.Token,
+			"expires_in": int(h.Config.TokenTTL().Seconds()),
+			"client":     result.Client,
+            "cart_id":    result.CartID,
+		})
 		return
 	}
 
@@ -203,7 +231,7 @@ func (h AuthHandler) verifyOTP(c *gin.Context) {
 		return
 	}
 
-	result, err := h.Service.VerifyOTP(c.Request.Context(), req.Phone, req.OTP)
+	result, err := h.Service.VerifyOTP(c.Request.Context(), req.Phone, req.OTP, req.CartID)
 	if err != nil {
 		switch {
 		case errors.Is(err, authsvc.ErrInvalidOTP):
@@ -221,6 +249,7 @@ func (h AuthHandler) verifyOTP(c *gin.Context) {
 		"token_type": "Bearer",
 		"expires_in": int(h.Config.TokenTTL().Seconds()),
 		"client":     toClientPayload(result.Client),
+        "cart_id":    result.CartID,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -275,8 +304,37 @@ func (h AuthHandler) clientUpdate(c *gin.Context) {
 		return
 	}
 
-	updatedClient, err := h.Service.UpdateClient(c.Request.Context(), client.ID, req.Email, req.Username)
+	var parsedDOB *time.Time
+	if req.DateOfBirth != nil && *req.DateOfBirth != "" {
+		// Handle formats: "2006-01-02T15:04:05.000Z" (ISO) or "2006-01-02"
+		t, err := time.Parse(time.RFC3339, *req.DateOfBirth)
+		if err != nil {
+			// Try simple date
+			t, err = time.Parse("2006-01-02", *req.DateOfBirth)
+			if err != nil {
+				writeError(c, http.StatusBadRequest, "INVALID_DATE", "Invalid date format. Use ISO8601 or YYYY-MM-DD", nil)
+				return
+			}
+		}
+		parsedDOB = &t
+	}
+
+	updatedClient, err := h.Service.UpdateClient(c.Request.Context(), client.ID, req.Email, req.Username, parsedDOB)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			if strings.Contains(pgErr.ConstraintName, "username") || strings.Contains(pgErr.Detail, "username") {
+				writeError(c, http.StatusConflict, "USERNAME_EXISTS", "This username is already taken.", nil)
+				return
+			}
+			if strings.Contains(pgErr.ConstraintName, "email") || strings.Contains(pgErr.Detail, "email") {
+				writeError(c, http.StatusConflict, "EMAIL_EXISTS", "This email is already taken.", nil)
+				return
+			}
+			writeError(c, http.StatusConflict, "DUPLICATE_ENTRY", "This value is already in use.", nil)
+			return
+		}
+
 		writeError(c, http.StatusInternalServerError, "UPDATE_ERROR", "Unable to update client right now.", nil)
 		return
 	}
@@ -311,11 +369,12 @@ func toAdminPayload(admin *models.Admin) gin.H {
 
 func toClientPayload(client *models.Client) gin.H {
 	return gin.H{
-		"client_id": client.ID,
-		"email":     client.Email,
-		"username":  client.Username,
-		"phone":     client.Phone,
-		"is_active": client.IsActive,
+		"client_id":     client.ID,
+		"email":         client.Email,
+		"username":      client.Username,
+		"phone":         client.Phone,
+		"is_active":     client.IsActive,
+		"date_of_birth": client.DateOfBirth,
 	}
 }
 
@@ -336,4 +395,75 @@ func writeError(c *gin.Context, status int, code, message string, details gin.H)
 	}
 
 	c.JSON(status, payload)
+}
+
+func (h AuthHandler) getOAuthConfig() *oauth2.Config {
+	return &oauth2.Config{
+		ClientID:     h.Config.GoogleClientID,
+		ClientSecret: h.Config.GoogleClientSecret,
+		RedirectURL:  h.Config.GoogleRedirectURL,
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
+	}
+}
+
+func (h AuthHandler) RegisterGoogleRoutes(rg *gin.RouterGroup) {
+	auth := rg.Group("/auth")
+	google := auth.Group("/google")
+	google.GET("/login", h.googleLogin)
+	google.GET("/callback", h.googleCallback)
+}
+
+func (h AuthHandler) googleLogin(c *gin.Context) {
+	conf := h.getOAuthConfig()
+	url := conf.AuthCodeURL("state-csrf-token", oauth2.AccessTypeOffline)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func (h AuthHandler) googleCallback(c *gin.Context) {
+	code := c.Query("code")
+	if code == "" {
+		writeError(c, http.StatusBadRequest, "INVALID_REQUEST", "Code not found", nil)
+		return
+	}
+
+	conf := h.getOAuthConfig()
+	token, err := conf.Exchange(c.Request.Context(), code)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "AUTH_ERROR", "Failed to exchange token", nil)
+		return
+	}
+
+	client := conf.Client(c.Request.Context(), token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "AUTH_ERROR", "Failed to get user info", nil)
+		return
+	}
+	defer resp.Body.Close()
+
+	var userInfo struct {
+		ID      string `json:"id"`
+		Email   string `json:"email"`
+		Name    string `json:"name"`
+		Picture string `json:"picture"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		writeError(c, http.StatusInternalServerError, "AUTH_ERROR", "Failed to parse user info", nil)
+		return
+	}
+
+	res, err := h.Service.LoginWithGoogle(c.Request.Context(), userInfo.ID, userInfo.Email, userInfo.Name)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "AUTH_ERROR", err.Error(), nil)
+		return
+	}
+
+	// Redirect to frontend with token
+	frontendURL := "http://localhost:5173"
+	redirectURL := fmt.Sprintf("%s/google-callback?token=%s&cart_id=%s", frontendURL, res.Token, res.CartID)
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }

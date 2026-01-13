@@ -21,7 +21,7 @@ func NewCartRepository(db *pgxpool.Pool) *CartRepository {
 }
 
 // GetCartByID retrieves a cart by ID.
-func (r *CartRepository) GetCartByID(ctx context.Context, cartID int64) (*models.Cart, error) {
+func (r *CartRepository) GetCartByID(ctx context.Context, cartID string) (*models.Cart, error) {
 	query := `
 		SELECT cart_id, client_id, discount_id, created_at, updated_at
 		FROM cart
@@ -51,6 +51,8 @@ func (r *CartRepository) GetCartByClientID(ctx context.Context, clientID int64) 
 		SELECT cart_id, client_id, discount_id, created_at, updated_at
 		FROM cart
 		WHERE client_id = $1
+		ORDER BY updated_at DESC
+		LIMIT 1
 	`
 	var cart models.Cart
 	var pgClientID, pgDiscountID pgtype.Int8
@@ -68,6 +70,13 @@ func (r *CartRepository) GetCartByClientID(ctx context.Context, clientID int64) 
 		cart.DiscountID = &pgDiscountID.Int64
 	}
 	return &cart, nil
+}
+
+// AssignCartToClient updates the cart's client_id.
+func (r *CartRepository) AssignCartToClient(ctx context.Context, cartID string, clientID int64) error {
+	query := `UPDATE cart SET client_id = $1, updated_at = NOW() WHERE cart_id = $2`
+	_, err := r.db.Exec(ctx, query, clientID, cartID)
+	return err
 }
 
 // CreateCart creates a new cart.
@@ -100,7 +109,7 @@ func (r *CartRepository) CreateCart(ctx context.Context, clientID *int64) (*mode
 }
 
 // UpdateCartClientID associates a cart with a client (for login).
-func (r *CartRepository) UpdateCartClientID(ctx context.Context, cartID, clientID int64) error {
+func (r *CartRepository) UpdateCartClientID(ctx context.Context, cartID string, clientID int64) error {
 	query := `
 		UPDATE cart
 		SET client_id = $2, updated_at = CURRENT_TIMESTAMP
@@ -111,7 +120,7 @@ func (r *CartRepository) UpdateCartClientID(ctx context.Context, cartID, clientI
 }
 
 // ApplyDiscountToCart applies a discount to the cart.
-func (r *CartRepository) ApplyDiscountToCart(ctx context.Context, cartID, discountID int64) error {
+func (r *CartRepository) ApplyDiscountToCart(ctx context.Context, cartID string, discountID int64) error {
 	query := `
 		UPDATE cart
 		SET discount_id = $2, updated_at = CURRENT_TIMESTAMP
@@ -122,7 +131,7 @@ func (r *CartRepository) ApplyDiscountToCart(ctx context.Context, cartID, discou
 }
 
 // RemoveDiscountFromCart removes the discount from the cart.
-func (r *CartRepository) RemoveDiscountFromCart(ctx context.Context, cartID int64) error {
+func (r *CartRepository) RemoveDiscountFromCart(ctx context.Context, cartID string) error {
 	query := `
 		UPDATE cart
 		SET discount_id = NULL, updated_at = CURRENT_TIMESTAMP
@@ -133,12 +142,23 @@ func (r *CartRepository) RemoveDiscountFromCart(ctx context.Context, cartID int6
 }
 
 // GetCartItems retrieves items in a cart.
-func (r *CartRepository) GetCartItems(ctx context.Context, cartID int64) ([]models.CartItemResponse, error) {
+func (r *CartRepository) GetCartItems(ctx context.Context, cartID string) ([]models.CartItemResponse, error) {
 	query := `
-		SELECT ci.product_id, ci.size_type, ci.quantity, ci.added_at,
-		       p.product_name, p.price, p.quantity as stock_quantity
+		SELECT ci.cart_item_id, ci.product_id, ci.size_type, ci.quantity, ci.added_at,
+		       p.product_name, p.product_type, p.price, p.quantity as stock_quantity,
+		       COALESCE(img.thumbnail_path, img.image_path, '') as thumbnail_url
 		FROM cart_items ci
 		JOIN products p ON ci.product_id = p.product_id
+		LEFT JOIN LATERAL (
+			SELECT thumbnail_path, image_path
+			FROM product_images pi
+			WHERE pi.product_id = ci.product_id
+			ORDER BY 
+				CASE WHEN ci.size_type IS NOT NULL AND pi.size_type = ci.size_type THEN 0 ELSE 1 END,
+				pi.is_primary DESC, 
+				pi.sort_order ASC
+			LIMIT 1
+		) img ON true
 		WHERE ci.cart_id = $1
 		ORDER BY ci.added_at
 	`
@@ -152,19 +172,21 @@ func (r *CartRepository) GetCartItems(ctx context.Context, cartID int64) ([]mode
 	for rows.Next() {
 		var item models.CartItemResponse
 		var sizeType *models.SizeType
-		err := rows.Scan(&item.ProductID, &sizeType, &item.Quantity, &item.AddedAt,
-			&item.ProductName, &item.UnitPrice, &item.StockQuantity)
+		var thumbnailURL string
+		err := rows.Scan(&item.CartItemID, &item.ProductID, &sizeType, &item.Quantity, &item.AddedAt,
+			&item.ProductName, &item.ProductType, &item.UnitPrice, &item.StockQuantity, &thumbnailURL)
 		if err != nil {
 			return nil, err
 		}
 		item.SizeType = sizeType
+		item.ThumbnailURL = thumbnailURL
 		items = append(items, item)
 	}
 	return items, rows.Err()
 }
 
 // AddItemToCart adds or updates an item in the cart.
-func (r *CartRepository) AddItemToCart(ctx context.Context, cartID, productID int64, sizeType *models.SizeType, quantity int) error {
+func (r *CartRepository) AddItemToCart(ctx context.Context, cartID string, productID int64, sizeType *models.SizeType, quantity int) error {
 	query := `
 		INSERT INTO cart_items (cart_id, product_id, size_type, quantity)
 		VALUES ($1, $2, $3, $4)
@@ -197,15 +219,36 @@ func (r *CartRepository) RemoveCartItem(ctx context.Context, cartItemID int64) e
 }
 
 // ClearCart removes all items from a cart.
-func (r *CartRepository) ClearCart(ctx context.Context, cartID int64) error {
+func (r *CartRepository) ClearCart(ctx context.Context, cartID string) error {
 	query := `DELETE FROM cart_items WHERE cart_id = $1`
 	_, err := r.db.Exec(ctx, query, cartID)
 	return err
 }
 
 // DeleteCart deletes a cart.
-func (r *CartRepository) DeleteCart(ctx context.Context, cartID int64) error {
+func (r *CartRepository) DeleteCart(ctx context.Context, cartID string) error {
 	query := `DELETE FROM cart WHERE cart_id = $1`
 	_, err := r.db.Exec(ctx, query, cartID)
 	return err
+}
+
+// UpdateCartOwner assigns a cart to a client.
+func (r *CartRepository) UpdateCartOwner(ctx context.Context, cartID string, clientID int64) error {
+	query := `UPDATE cart SET client_id = $2 WHERE cart_id = $1`
+	_, err := r.db.Exec(ctx, query, cartID, clientID)
+	return err
+}
+
+// GetCartIDByCartItemID retrieves the cart ID for a given cart item.
+func (r *CartRepository) GetCartIDByCartItemID(ctx context.Context, cartItemID int64) (string, error) {
+	var cartID string
+	query := `SELECT cart_id FROM cart_items WHERE cart_item_id = $1`
+	err := r.db.QueryRow(ctx, query, cartItemID).Scan(&cartID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return "", fmt.Errorf("cart item not found")
+		}
+		return "", err
+	}
+	return cartID, nil
 }

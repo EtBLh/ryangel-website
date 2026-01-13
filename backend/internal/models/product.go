@@ -19,6 +19,7 @@ const (
 	SizeTypeVRect    SizeType = "v-rect"
 	SizeTypeSquare   SizeType = "square"
 	SizeTypeFatVRect SizeType = "fat-v-rect"
+	SizeTypeBigSquare SizeType = "big-square"
 )
 
 // Product represents a product in the catalog.
@@ -48,15 +49,16 @@ type Product struct {
 
 // ProductImage represents an image associated with a product.
 type ProductImage struct {
-	ID        int64     `json:"image_id"`
-	ProductID int64     `json:"product_id"`
-	URL       string    `json:"url"`
-	AltText   string    `json:"alt_text"`
-	SizeType  *SizeType `json:"size_type"`
-	SortOrder int       `json:"sort_order"`
-	IsPrimary bool      `json:"is_primary"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           int64     `json:"image_id"`
+	ProductID    int64     `json:"product_id"`
+	URL          string    `json:"url"`
+	ThumbnailURL string    `json:"thumbnail_url"`
+	AltText      string    `json:"alt_text"`
+	SizeType     *SizeType `json:"size_type"`
+	SortOrder    int       `json:"sort_order"`
+	IsPrimary    bool      `json:"is_primary"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // Category represents a product category.

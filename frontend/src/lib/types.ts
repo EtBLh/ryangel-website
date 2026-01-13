@@ -1,4 +1,4 @@
-export type SizeType = 'v-rect' | 'square' | 'fat-v-rect';
+export type SizeType = 'v-rect' | 'square' | 'fat-v-rect' | 'big-square';
 
 export interface Product {
   product_id: number;
@@ -30,6 +30,7 @@ export interface ProductImage {
   image_id: number;
   product_id: number;
   url: string;
+  thumbnail_url: string;
   alt_text: string;
   size_type: SizeType | null;
   is_primary: boolean;
@@ -45,6 +46,7 @@ export interface ProductCategory {
 }
 
 export interface CartItem {
+  cart_item_id: number;
   product_id: number;
   size_type: SizeType | null;
   quantity: number;
@@ -52,11 +54,49 @@ export interface CartItem {
   product_name: string;
   unit_price: number;
   stock_quantity: number;
+  thumbnail_url: string;
 }
 
 export interface Cart {
   items: CartItem[];
   subtotal: number;
+  discounted_subtotal: number;
+  shipping_fee: number;
+  discounted_shipping_fee: number;
   discount: number;
   total: number;
+}
+export interface Order {
+  order_id: number;
+  order_number: string;
+  order_status: string;
+  subtotal_amount: number;
+  discount_amount: number;
+  shipping_amount: number;
+  tax_amount: number;
+  total_amount: number;
+  payment_method: string;
+  payment_status: string;
+  order_date: string;
+  payment_proof?: string | null;
+}
+
+export interface EbuyStore {
+  store_id: string;
+  store_name: string;
+  type: string;
+  office_hours: string;
+  address: string;
+  address_en: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface Client {
+  client_id: number;
+  email: string | null;
+  username: string | null;
+  phone: string;
+  is_active: boolean;
+  date_of_birth?: string | null;
 }

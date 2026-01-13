@@ -46,7 +46,8 @@ func main() {
 
 	adminRepo := repository.NewAdminRepository(pool)
 	clientRepo := repository.NewClientRepository(pool)
-	authService := authsvc.NewService(adminRepo, clientRepo, cfg)
+	cartRepo := repository.NewCartRepository(pool)
+	authService := authsvc.NewService(adminRepo, clientRepo, cartRepo, cfg)
 	ebuyService := ebuysvc.NewEbuyService(pool)
 
 	srv := server.New(server.Options{

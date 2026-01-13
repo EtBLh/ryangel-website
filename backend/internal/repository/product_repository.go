@@ -87,6 +87,7 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 			p.available_sizes, p.created_at, p.updated_at,
 			COALESCE(pi.image_id, 0) as image_id,
 			COALESCE(pi.image_path, '') as image_path,
+			COALESCE(pi.thumbnail_path, '') as thumbnail_path,
 			pi.alt_text,
 			pi.size_type,
 			COALESCE(pi.sort_order, 0) as sort_order,
@@ -112,6 +113,7 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 		var p models.ProductWithDetails
 		var imageID int64
 		var imagePath string
+		var thumbnailPath string
 		var altText *string
 		var sizeType *models.SizeType
 		var sortOrder int
@@ -122,7 +124,7 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 			&p.ID, &p.Name, &p.Description, &p.Type, &p.Hashtag,
 			&p.SKU, &p.Price, &p.CompareAtPrice, &p.Quantity, &p.IsFeatured, &p.IsActive,
 			&availableSizes, &p.CreatedAt, &p.UpdatedAt,
-			&imageID, &imagePath, &altText, &sizeType, &sortOrder, &isPrimary,
+			&imageID, &imagePath, &thumbnailPath, &altText, &sizeType, &sortOrder, &isPrimary,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("scan product: %w", err)
@@ -143,13 +145,14 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 					altTextStr = *altText
 				}
 				img := models.ProductImage{
-					ID:        imageID,
-					ProductID: p.ID,
-					URL:       imagePath,
-					AltText:   altTextStr,
-					SizeType:  sizeType,
-					SortOrder: sortOrder,
-					IsPrimary: isPrimary,
+					ID:           imageID,
+					ProductID:    p.ID,
+					URL:          imagePath,
+					ThumbnailURL: thumbnailPath,
+					AltText:      altTextStr,
+					SizeType:     sizeType,
+					SortOrder:    sortOrder,
+					IsPrimary:    isPrimary,
 				}
 				existingProduct.Images = append(existingProduct.Images, img)
 			}
@@ -162,13 +165,14 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 					altTextStr = *altText
 				}
 				img := models.ProductImage{
-					ID:        imageID,
-					ProductID: p.ID,
-					URL:       imagePath,
-					AltText:   altTextStr,
-					SizeType:  sizeType,
-					SortOrder: sortOrder,
-					IsPrimary: isPrimary,
+					ID:           imageID,
+					ProductID:    p.ID,
+					URL:          imagePath,
+					ThumbnailURL: thumbnailPath,
+					AltText:      altTextStr,
+					SizeType:     sizeType,
+					SortOrder:    sortOrder,
+					IsPrimary:    isPrimary,
 				}
 				p.Images = []models.ProductImage{img}
 			} else {
@@ -200,6 +204,7 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 			p.available_sizes, p.created_at, p.updated_at,
 			COALESCE(pi.image_id, 0) as image_id,
 			COALESCE(pi.image_path, '') as image_path,
+			COALESCE(pi.thumbnail_path, '') as thumbnail_path,
 			pi.alt_text,
 			pi.size_type,
 			COALESCE(pi.sort_order, 0) as sort_order,
@@ -223,6 +228,7 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 			p = &models.ProductWithDetails{}
 			var imageID int64
 			var imagePath string
+			var thumbnailPath string
 			var altText *string
 			var sizeType *models.SizeType
 			var sortOrder int
@@ -233,7 +239,7 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 				&p.ID, &p.Name, &p.Description, &p.Type, &p.Hashtag,
 				&p.SKU, &p.Price, &p.CompareAtPrice, &p.Quantity, &p.IsFeatured, &p.IsActive,
 				&availableSizes, &p.CreatedAt, &p.UpdatedAt,
-				&imageID, &imagePath, &altText, &sizeType, &sortOrder, &isPrimary,
+				&imageID, &imagePath, &thumbnailPath, &altText, &sizeType, &sortOrder, &isPrimary,
 			)
 			if err != nil {
 				return nil, fmt.Errorf("scan product: %w", err)
@@ -264,13 +270,14 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 					altTextStr = *altText
 				}
 				img := models.ProductImage{
-					ID:        imageID,
-					ProductID: p.ID,
-					URL:       imagePath,
-					AltText:   altTextStr,
-					SizeType:  sizeType,
-					SortOrder: sortOrder,
-					IsPrimary: isPrimary,
+					ID:           imageID,
+					ProductID:    p.ID,
+					URL:          imagePath,
+					ThumbnailURL: thumbnailPath,
+					AltText:      altTextStr,
+					SizeType:     sizeType,
+					SortOrder:    sortOrder,
+					IsPrimary:    isPrimary,
 				}
 				images = append(images, img)
 			}
@@ -278,6 +285,7 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 			// Additional image rows
 			var imageID int64
 			var imagePath string
+			var thumbnailPath string
 			var altText *string
 			var sizeType *models.SizeType
 			var sortOrder int
@@ -285,8 +293,8 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 
 			// Skip the product fields and scan only image fields
 			err := rows.Scan(
-				nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-				&imageID, &imagePath, &altText, &sizeType, &sortOrder, &isPrimary,
+				nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
+				&imageID, &imagePath, &thumbnailPath, &altText, &sizeType, &sortOrder, &isPrimary,
 			)
 			if err != nil {
 				return nil, fmt.Errorf("scan product image: %w", err)
@@ -298,13 +306,14 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 					altTextStr = *altText
 				}
 				img := models.ProductImage{
-					ID:        imageID,
-					ProductID: p.ID,
-					URL:       imagePath,
-					AltText:   altTextStr,
-					SizeType:  sizeType,
-					SortOrder: sortOrder,
-					IsPrimary: isPrimary,
+					ID:           imageID,
+					ProductID:    p.ID,
+					URL:          imagePath,
+					ThumbnailURL: thumbnailPath,
+					AltText:      altTextStr,
+					SizeType:     sizeType,
+					SortOrder:    sortOrder,
+					IsPrimary:    isPrimary,
 				}
 				images = append(images, img)
 			}
@@ -326,7 +335,7 @@ func (r *ProductRepository) GetProductByID(ctx context.Context, productID int64)
 func (r *ProductRepository) GetProductImages(ctx context.Context, productID int64) ([]models.ProductImage, error) {
 	query := `
 		SELECT
-			image_id, product_id, image_path, alt_text, sort_order, is_primary, created_at, updated_at
+			image_id, product_id, image_path, thumbnail_path, alt_text, sort_order, is_primary, created_at, updated_at
 		FROM product_images
 		WHERE product_id = $1
 		ORDER BY sort_order ASC, created_at ASC`
@@ -342,15 +351,19 @@ func (r *ProductRepository) GetProductImages(ctx context.Context, productID int6
 		var img models.ProductImage
 		var altText *string
 		var imagePath string
+		var thumbnailPath *string
 
 		err := rows.Scan(
-			&img.ID, &img.ProductID, &imagePath, &altText, &img.SortOrder, &img.IsPrimary, &img.CreatedAt, &img.UpdatedAt,
+			&img.ID, &img.ProductID, &imagePath, &thumbnailPath, &altText, &img.SortOrder, &img.IsPrimary, &img.CreatedAt, &img.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan product image: %w", err)
 		}
 
 		img.URL = imagePath
+		if thumbnailPath != nil {
+			img.ThumbnailURL = *thumbnailPath
+		}
 		if altText != nil {
 			img.AltText = *altText
 		} else {

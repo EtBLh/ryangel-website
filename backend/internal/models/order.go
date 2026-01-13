@@ -63,6 +63,7 @@ type Order struct {
 	CancelledAt      *time.Time     `json:"cancelled_at"`
 	CustomerNotes    *string        `json:"customer_notes"`
 	AdminNotes       *string        `json:"admin_notes"`
+	PaymentProof     *string        `json:"payment_proof"`
 }
 
 // OrderItem represents an item in an order.

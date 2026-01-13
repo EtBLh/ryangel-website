@@ -59,6 +59,9 @@ func New(opts Options) *Server {
 	}
 
 	api := router.Group("/api")
+	// Static media serving is handled by Nginx
+	// api.Static("/media", "./media")
+
 	healthHandler := handlers.HealthHandler{DB: opts.DB}
 	healthHandler.Register(api)
 
@@ -71,13 +74,23 @@ func New(opts Options) *Server {
 	ebuyStoreHandler.Register(api)
 
 	cartRepo := repository.NewCartRepository(opts.DB)
-	cartHandler := handlers.CartHandler{Repo: cartRepo, EbuyStoreRepo: ebuyStoreRepo}
+    discountRepo := repository.NewDiscountRepository(opts.DB)
+	cartHandler := handlers.CartHandler{
+        Repo: cartRepo, 
+        EbuyStoreRepo: ebuyStoreRepo,
+        DiscountRepo: discountRepo,
+    }
 	cartHandler.Register(api, opts.AuthService)
+
+	orderRepo := repository.NewOrderRepository(opts.DB)
+	orderHandler := handlers.OrderHandler{Orders: orderRepo}
+	orderHandler.Register(api, opts.AuthService)
 
 	if opts.AuthService != nil {
 		authHandler := handlers.AuthHandler{Service: opts.AuthService, Config: opts.Config}
 		authHandler.RegisterAdminRoutes(api)
 		authHandler.RegisterClientRoutes(api)
+		authHandler.RegisterGoogleRoutes(api)
 	}
 
 	if opts.EbuyService != nil {

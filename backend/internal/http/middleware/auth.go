@@ -64,6 +64,34 @@ func ClientAuth(service *authsvc.Service) gin.HandlerFunc {
 	}
 }
 
+// OptionalClientAuth attempts to authenticate a client if a token is present.
+func OptionalClientAuth(service *authsvc.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := extractBearer(c.GetHeader("Authorization"))
+		if token != "" {
+			client, err := service.ValidateClientToken(c.Request.Context(), token)
+			if err == nil {
+				c.Set(clientContextKey, client)
+			}
+            // If token is invalid, we proceed as anonymous (clientContextKey not set)
+            // Alternatively, we could choose to fail on invalid token. 
+            // Given the requirement "if api that requires auth fail because of invalid token...", 
+            // this API does NOT require auth, so proceeding anonymously is acceptable behavior.
+            // However, if the frontend sends a bad token, it might expect to be logged out?
+            // Since the frontend sends header "Authorization" for /cart ONLY if it thinks it's logged in.
+            // If we ignore it, the user sees anonymous cart (empty or confusing).
+            // It is often better to return 401 on BAD token even for optional auth endpoints.
+            if err != nil {
+                 if errors.Is(err, authsvc.ErrInvalidToken) {
+                    abortUnauthorized(c, "AUTH_TOKEN_EXPIRED", "Token expired. Refresh login.")
+                    return
+                 }
+            }
+		}
+		c.Next()
+	}
+}
+
 // AdminFromContext fetches the authenticated admin from the Gin context.
 func AdminFromContext(c *gin.Context) (*models.Admin, bool) {
 	value, ok := c.Get(adminContextKey)

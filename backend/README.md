@@ -49,11 +49,25 @@ make test
 make tidy
 ```
 
-If you prefer raw Go commands:
+### on Development
 
-```bash
-go run ./cmd/server
+```sh
+
+# run the go server on tmux server
+tmux send-keys -t backend-dev 'make run' Enter
+
+# stop the backend server
+tmux send-keys -t backend-dev C-c
 ```
+
+### on database
+
+```sh
+#to execute postgres commands
+sudo -u postgres psql 
+```
+
+---
 
 The server exposes:
 - `GET /api/healthz` – liveness/readiness with PostgreSQL ping.
