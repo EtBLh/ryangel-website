@@ -12,7 +12,7 @@ server {
     
     # Proxy to local Go dev server
     location /api/ {
-        proxy_pass http://localhost:8080;  # Go dev server
+        proxy_pass http://localdhost:8080;  # Go dev server
         proxy_set_header Host $host;
     }
 

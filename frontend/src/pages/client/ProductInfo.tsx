@@ -16,8 +16,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import FaichunSizeSq from '@public/faichun-size-sq.svg?react';
-import FaichunSizeVRect from '@public/faichun-size-v-rect.svg?react';
+import FaichunSizeSq from '@public/FaiChun-size-square.svg?react';
+import FaichunSizeVRect from '@public/FaiChun-size-vertical.svg?react';
+import FaichunSizeFatVRect from '@public/FaiChun-size-fat.svg?react';
+import FaichunSizeBigSquare from '@public/FaiChun-size-bigsquare.svg?react';
 import { AspectRatio } from '@radix-ui/react-aspect-ratio';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
@@ -201,14 +203,16 @@ const ProductInfo = () => {
                                 <AccordionTrigger className=''>揮春尺寸</AccordionTrigger>
                                 <AccordionContent className="flex flex-col">
                                     <div>
-                                        <p className='text-sm text-gray-700'>直式: 13cm x 30cm</p>
-                                        <p className='text-sm text-gray-700'>正方: 23cm x 23cm</p>
-                                        <p className='text-sm text-gray-700'>大正方: 34cm x 34cm</p>
-                                        <p className='text-sm text-gray-700'>寛直式: 待定</p>
+                                        <p className='text-sm text-gray-700'>直款: 13cm x 30cm</p>
+                                        <p className='text-sm text-gray-700'>方形: 23cm x 23cm</p>
+                                        <p className='text-sm text-gray-700'>巨無霸方形: 28cm x 28cm</p>
+                                        <p className='text-sm text-gray-700'>胖胖款: 23*30</p>
                                     </div>
-                                    <div className="flex flex-row gap-4">
-                                        <FaichunSizeSq />
-                                        <FaichunSizeVRect />
+                                    <div className="grid grid-cols-2 gap-2 place-items-center">
+                                        <FaichunSizeSq className="max-h-[15vh]" />
+                                        <FaichunSizeVRect className="max-h-[15vh]" />
+                                        <FaichunSizeFatVRect className="max-h-[15vh]" />
+                                        <FaichunSizeBigSquare className="max-h-[15vh]" />
                                     </div>
                                 </AccordionContent>
                             </AccordionItem>
