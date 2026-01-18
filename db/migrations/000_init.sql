@@ -69,7 +69,7 @@ CREATE TABLE ebuy_store (
 
 -- Create custom ENUM types first
 CREATE TYPE product_type_enum AS ENUM ('faiachun', 'bag');
-CREATE TYPE size_type_enum AS ENUM ('v-rect', 'square', 'fat-v-rect');
+CREATE TYPE size_type_enum AS ENUM ('v-rect', 'square', 'fat-v-rect', 'big-square');
 CREATE TYPE discount_type_enum AS ENUM ('percentage', 'fixed_amount', 'free_shipping', 'bxgy');
 CREATE TYPE product_restriction_enum AS ENUM ('faiachun', 'bag', 'all');
 CREATE TYPE applies_to_enum AS ENUM ('all_products', 'specific_products', 'specific_categories', 'first_order', 'bxgy_products');
