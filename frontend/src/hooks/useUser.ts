@@ -7,7 +7,7 @@ import type { Client } from '@/lib/types';
 export const useUser = () => {
     const token = useSelector((state: RootState) => state.auth.token);
 
-    return useQuery<{ client: Client }>({
+    return useQuery<{ client: Client }, Error, Client>({
         queryKey: ['user', token],
         queryFn: () => callAPI('clientMe'),
         enabled: !!token,

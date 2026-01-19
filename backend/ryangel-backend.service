@@ -1,0 +1,14 @@
+[Unit]
+Description=RyAngel Backend
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/ryangel/backend
+ExecStart=/var/www/ryangel/backend/server
+EnvironmentFile=/var/www/ryangel/backend/.env
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

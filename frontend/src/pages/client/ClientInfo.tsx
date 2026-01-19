@@ -189,7 +189,6 @@ const ClientInfo = () => {
             <FormField
               control={form.control}
               name="date_of_birth"
-              classname="space-y-0"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel className="text-sm font-medium text-gray-500">Birthday</FormLabel>
@@ -272,7 +271,7 @@ const ClientInfo = () => {
                 </div>
                 <div className="flex justify-end my-2">
                   <Badge className={getStatusColor(order.order_status)}>
-                    {dict[order.order_status]}
+                    {dict[order.order_status as keyof typeof dict]}
                   </Badge>
                 </div>
                 <div className="text-sm text-gray-600">
