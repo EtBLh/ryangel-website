@@ -7,7 +7,6 @@ import { clearCart } from '../../store/cartSlice';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../components/ui/accordion';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Separator } from '../../components/ui/separator';
 import { callAPI } from '../../lib/api';
 import type { Cart, CartItem, EbuyStore } from '../../lib/types';
 import { toast } from 'sonner';
@@ -189,7 +188,7 @@ export default function Checkout() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-medium truncate">{item.product_name}</h4>
-                                                <p className="text-sm text-gray-500">{dict[item.size_type]}</p>
+                                                <p className="text-sm text-gray-500">{item.size_type ? dict[item.size_type] || item.size_type : ''}</p>
                                                 <p className="text-xs text-gray-500">Qty: {item.quantity}張</p>
                                             </div>
                                             <div className="font-semibold whitespace-nowrap">
@@ -202,9 +201,12 @@ export default function Checkout() {
                                             <span className="text-gray-600">小計</span>
                                             <span>MOP$ {cart.subtotal}</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-sm">
+                                        <div className="flex justify-between items-start text-sm">
                                             <span className="text-gray-600">運費</span>
-                                            <span>MOP$ {cart.shipping_fee}</span>
+                                            <div className='flex flex-col text-right'>
+                                                <span>MOP$ {cart.shipping_fee}</span>
+                                                <span className={cn('text-green-600', {'hidden': cart.discounted_shipping_fee >= cart.shipping_fee})}>-MOP$ {cart.shipping_fee - cart.discounted_shipping_fee}</span>
+                                            </div>
                                         </div>
                                         {cart.discount > 0 && (
                                             <div className="flex justify-between items-center text-sm text-green-600">
@@ -394,7 +396,7 @@ export default function Checkout() {
                                                 <FormItem>
                                                     <FormLabel>收貨人電話號碼</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="收貨人電話號碼" {...field} disabled />
+                                                        <Input placeholder="收貨人電話號碼" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>

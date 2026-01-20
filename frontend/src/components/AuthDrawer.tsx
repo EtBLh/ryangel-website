@@ -570,7 +570,7 @@ export default function AuthDrawer({ isOpen, onOpenChange, defaultView = 'login'
     if (isMobile) {
         return (
             <Drawer open={isOpen} direction="bottom" onOpenChange={onOpenChange}>
-                <DrawerContent className="h-[85vh] bottom-0 mt-0 px-2 pb-1 bg-white rounded-t-xl">
+                <DrawerContent className="h-[85vh] bottom-0 mt-0 px-2 pb-1 bg-white rounded-t-xl w-full">
                     <div className="relative flex flex-col w-full h-full">
                         <DrawerHeader className='mt-4 text-left'>
                             <DrawerTitle>{title}</DrawerTitle>

@@ -98,5 +98,6 @@ export interface Client {
   username: string | null;
   phone: string;
   is_active: boolean;
+  activated: boolean;
   date_of_birth?: string | null;
 }

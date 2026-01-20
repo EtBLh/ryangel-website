@@ -97,12 +97,13 @@ const Home = () => {
                   className={cn(
                     "object-cover hover:border-black border-[1px]",
                     product.images[0].size_type === 'square' ? 'rotate-45 scale-[0.7]' : '',
+                    product.images[0].size_type === 'big-square' ? 'rotate-45 scale-[0.8] -m-1' : '',
                     product.images[0].size_type === 'v-rect' ? 'w-[65%]' : '',
                   )}
                 />
                 <div className='py-1 w-full flex flex-row justify-between items-center'>
                   <div className="flex flex-col items-start">
-                    <h3 className="text-lg md:text-xl ">{product.product_name}</h3>
+                    <h3 className="text-md md:text-xl ">{product.product_name}</h3>
                     <p className="text-gray-600 text-xs md:text-sm">MOP$ {product.price}</p>
                   </div>
                   <FaichunAvaiSizes sizes={product.available_sizes} />

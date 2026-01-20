@@ -4,7 +4,7 @@ import { logout } from '../store/authSlice';
 import axios from 'axios';
 import { store } from '../store';
 
-const API_BASE = (import.meta.env.VITE_API_ROOT || 'https://ryangel.com') + '/api';
+const API_BASE = (import.meta.env.VITE_API_ROOT || 'https://ryangel.com/api');
 
 interface ApiEndpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
