@@ -59,7 +59,7 @@ func (r *CartRepository) GetCartByClientID(ctx context.Context, clientID int64) 
 	err := r.db.QueryRow(ctx, query, clientID).Scan(&cart.CartID, &pgClientID, &pgDiscountID, &cart.CreatedAt, &cart.UpdatedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, nil // No cart for this client
+			return nil, ErrNotFound // No cart for this client
 		}
 		return nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -108,6 +109,7 @@ func (s *Service) ValidateAdminToken(ctx context.Context, token string) (*models
 }
 
 func (s *Service) ClientLogin(ctx context.Context, phone string) error {
+	phone = strings.TrimSpace(phone)
 	// Check if client exists
 	client, err := s.clients.GetByPhone(ctx, phone)
 	if err != nil && err != repository.ErrNotFound {
@@ -158,6 +160,10 @@ func (s *Service) ClientLoginPassword(ctx context.Context, identifier string, pa
 		return nil, ErrInactiveAccount
 	}
 
+	if !client.Activated {
+		return nil, ErrInactiveAccount
+	}
+
 	if client.PasswordHash == nil {
 		return nil, ErrInvalidCredentials
 	}
@@ -190,14 +196,15 @@ func (s *Service) ValidateClientToken(ctx context.Context, token string) (*model
 }
 
 func (s *Service) ClientRegister(ctx context.Context, phone string, email *string, username string, password string) (*models.Client, error) {
+	phone = strings.TrimSpace(phone)
 	// Check if phone already exists
 	existingClient, err := s.clients.GetByPhone(ctx, phone)
 	if err == nil {
-		// Phone exists. Check if active.
-		if existingClient.IsActive {
+		// Phone exists. Check if activated.
+		if existingClient.Activated {
 			return nil, errors.New("phone number already registered")
 		}
-		// Inactive: assume retry registration. Update logic below.
+		// Unactivated: assume retry registration. Update logic below.
 	} else if err != repository.ErrNotFound {
 		return nil, err
 	} else {
@@ -305,6 +312,8 @@ func (s *Service) generateClientToken(ctx context.Context, client *models.Client
 }
 
 func (s *Service) VerifyOTP(ctx context.Context, phone, otpCode string, cartID string) (*ClientLoginResult, error) {
+	phone = strings.TrimSpace(phone)
+	otpCode = strings.TrimSpace(otpCode)
 	client, err := s.clients.VerifyOTP(ctx, phone, otpCode)
 	if err != nil {
 		if err == repository.ErrNotFound {
@@ -314,11 +323,11 @@ func (s *Service) VerifyOTP(ctx context.Context, phone, otpCode string, cartID s
 	}
 
     // Activate the client if they were verifying registration
-    if !client.IsActive {
+    if !client.Activated {
         if err := s.clients.ActivateClient(ctx, client.ID); err != nil {
             return nil, err
         }
-        client.IsActive = true
+        client.Activated = true
     }
 
 	if cartID != "" {

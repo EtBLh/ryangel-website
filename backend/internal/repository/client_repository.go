@@ -21,7 +21,7 @@ func NewClientRepository(db *pgxpool.Pool) *ClientRepository {
 
 func (r *ClientRepository) GetByPhone(ctx context.Context, phone string) (*models.Client, error) {
 	const query = `
-		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 		FROM client
 		WHERE phone = $1
 		LIMIT 1`
@@ -32,7 +32,7 @@ func (r *ClientRepository) GetByPhone(ctx context.Context, phone string) (*model
 
 func (r *ClientRepository) GetByGoogleID(ctx context.Context, googleID string) (*models.Client, error) {
 	const query = `
-		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 		FROM client
 		WHERE google_id = $1
 		LIMIT 1`
@@ -48,7 +48,7 @@ func (r *ClientRepository) GetByIdentifier(ctx context.Context, identifier strin
 
 func (r *ClientRepository) GetByUsername(ctx context.Context, username string) (*models.Client, error) {
 	const query = `
-		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 		FROM client
 		WHERE username = $1
 		LIMIT 1`
@@ -59,7 +59,7 @@ func (r *ClientRepository) GetByUsername(ctx context.Context, username string) (
 
 func (r *ClientRepository) GetByTokenHash(ctx context.Context, tokenHash string) (*models.Client, error) {
 	const query = `
-		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 		FROM client
 		WHERE token = $1 AND token_expiry > NOW()
 		LIMIT 1`
@@ -94,7 +94,7 @@ func (r *ClientRepository) ClearToken(ctx context.Context, clientID int64) error
 
 func (r *ClientRepository) GetByEmail(ctx context.Context, email string) (*models.Client, error) {
 	const query = `
-		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 		FROM client
 		WHERE email = $1
 		LIMIT 1`
@@ -111,7 +111,7 @@ func (r *ClientRepository) UpdateClient(ctx context.Context, clientID int64, ema
 			date_of_birth = COALESCE($4, date_of_birth),
 			updated_at = NOW()
 		WHERE client_id = $1
-		RETURNING client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		RETURNING client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 	`
 	row := r.db.QueryRow(ctx, query, clientID, email, username, dateOfBirth)
 	return scanClient(row)
@@ -119,16 +119,16 @@ func (r *ClientRepository) UpdateClient(ctx context.Context, clientID int64, ema
 
 func (r *ClientRepository) CreateClient(ctx context.Context, phone *string, email *string, username *string, passwordHash *string, googleID *string, isActive bool) (*models.Client, error) {
 	const query = `
-		INSERT INTO client (phone, email, username, password_hash, google_id, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-		RETURNING client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at`
+		INSERT INTO client (phone, email, username, password_hash, google_id, is_active, activated, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, TRUE, $6, NOW(), NOW())
+		RETURNING client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at`
 
 	row := r.db.QueryRow(ctx, query, phone, email, username, passwordHash, googleID, isActive)
 	return scanClient(row)
 }
 
 func (r *ClientRepository) ActivateClient(ctx context.Context, clientID int64) error {
-	const stmt = `UPDATE client SET is_active = TRUE, otp_code = NULL, otp_code_expiry = NULL, updated_at = NOW() WHERE client_id = $1`
+	const stmt = `UPDATE client SET is_active = TRUE, activated = TRUE, otp_code = NULL, otp_code_expiry = NULL, updated_at = NOW() WHERE client_id = $1`
 	cmd, err := r.db.Exec(ctx, stmt, clientID)
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func (r *ClientRepository) UpdateClientRegistration(ctx context.Context, clientI
 		UPDATE client 
 		SET username = $2, password_hash = $3, updated_at = NOW()
 		WHERE client_id = $1
-		RETURNING client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at`
+		RETURNING client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at`
 
 	row := r.db.QueryRow(ctx, query, clientID, username, passwordHash)
 	return scanClient(row)
@@ -176,7 +176,7 @@ func (r *ClientRepository) SetOTP(ctx context.Context, phone string, otpCode str
 
 func (r *ClientRepository) VerifyOTP(ctx context.Context, phone string, otpCode string) (*models.Client, error) {
 	const query = `
-		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
+		SELECT client_id, email, username, phone, google_id, password_hash, date_of_birth, is_active, activated, token, token_expiry, otp_code, otp_code_expiry, created_at, updated_at
 		FROM client
 		WHERE phone = $1 AND otp_code = $2 AND otp_code_expiry > NOW()
 		LIMIT 1`
@@ -215,6 +215,7 @@ func scanClient(row pgx.Row) (*models.Client, error) {
 		&passwordHash,
 		&dateOfBirth,
 		&client.IsActive,
+		&client.Activated, 
 		&tokenHash,
 		&tokenExpiry,
 		&otpCode,

@@ -1,0 +1,40 @@
+nohup: ignoring input
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/healthz              --> github.com/ryangel/ryangel-backend/internal/http/handlers.HealthHandler.Get-fm (4 handlers)
+[GIN-debug] GET    /api/products             --> github.com/ryangel/ryangel-backend/internal/http/handlers.ProductHandler.ListProducts-fm (4 handlers)
+[GIN-debug] GET    /api/products/:product_id --> github.com/ryangel/ryangel-backend/internal/http/handlers.ProductHandler.GetProduct-fm (4 handlers)
+[GIN-debug] GET    /api/products/:product_id/images --> github.com/ryangel/ryangel-backend/internal/http/handlers.ProductHandler.GetProductImages-fm (4 handlers)
+[GIN-debug] GET    /api/ebuystores           --> github.com/ryangel/ryangel-backend/internal/http/handlers.EbuyStoreHandler.GetEbuyStores-fm (4 handlers)
+[GIN-debug] GET    /api/ebuystores/:store_id --> github.com/ryangel/ryangel-backend/internal/http/handlers.EbuyStoreHandler.GetEbuyStore-fm (4 handlers)
+[GIN-debug] GET    /api/cart                 --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.GetCart-fm (5 handlers)
+[GIN-debug] POST   /api/cart/items           --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.AddItemToCart-fm (5 handlers)
+[GIN-debug] PATCH  /api/cart/items/:cart_item_id --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.UpdateCartItem-fm (5 handlers)
+[GIN-debug] DELETE /api/cart/items/:cart_item_id --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.RemoveCartItem-fm (5 handlers)
+[GIN-debug] POST   /api/cart/checkout        --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.Checkout-fm (5 handlers)
+[GIN-debug] POST   /api/cart/apply-discount  --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.ApplyDiscount-fm (5 handlers)
+[GIN-debug] DELETE /api/cart/discount        --> github.com/ryangel/ryangel-backend/internal/http/handlers.CartHandler.RemoveDiscount-fm (5 handlers)
+[GIN-debug] GET    /api/orders               --> github.com/ryangel/ryangel-backend/internal/http/handlers.OrderHandler.listOrders-fm (5 handlers)
+[GIN-debug] POST   /api/orders               --> github.com/ryangel/ryangel-backend/internal/http/handlers.OrderHandler.createOrder-fm (5 handlers)
+[GIN-debug] POST   /api/admin/login          --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.adminLogin-fm (4 handlers)
+[GIN-debug] GET    /api/admin/me             --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.adminMe-fm (5 handlers)
+[GIN-debug] POST   /api/admin/logout         --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.adminLogout-fm (5 handlers)
+[GIN-debug] POST   /api/clients/register     --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.clientRegister-fm (4 handlers)
+[GIN-debug] POST   /api/clients/login        --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.clientLogin-fm (4 handlers)
+[GIN-debug] POST   /api/clients/verify-otp   --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.verifyOTP-fm (4 handlers)
+[GIN-debug] POST   /api/clients/resend-otp   --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.resendOTP-fm (4 handlers)
+[GIN-debug] GET    /api/clients/me           --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.clientMe-fm (5 handlers)
+[GIN-debug] PATCH  /api/clients/me           --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.clientUpdate-fm (5 handlers)
+[GIN-debug] POST   /api/clients/logout       --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.clientLogout-fm (5 handlers)
+[GIN-debug] GET    /api/auth/google/login    --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.googleLogin-fm (4 handlers)
+[GIN-debug] GET    /api/auth/google/callback --> github.com/ryangel/ryangel-backend/internal/http/handlers.AuthHandler.googleCallback-fm (4 handlers)
+Fetching ebuy sites from API...
+API response status: 200
+Fetched 160 sites from API
+Upserted 154 sites into database
+2026-01-20T20:54:17.928+0800	INFO	server/main.go:67	server listening	{"addr": "0.0.0.0:8080"}
+2026-01-20T20:54:17.943+0800	ERROR	server/main.go:63	server stopped	{"error": "listen tcp 0.0.0.0:8080: bind: address already in use"}
+main.main.func1
+	/home/etblh/ryangel-website/backend/cmd/server/main.go:63
