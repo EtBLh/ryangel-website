@@ -255,19 +255,19 @@ const ClientInfo = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <p className="font-semibold text-lg">#{order.order_number}</p>
+                      <p className="font-semibold text-md md:text-lg">#{order.order_number}</p>
                     </div>
                     <p className="text-sm text-gray-500 mt-1">
                       {new Date(order.order_date).toLocaleString('zh-TW')}
                     </p>
                     {order.ebuy_store_name && (
-                       <p className="text-sm font-medium text-blue-600 mt-1">
+                       <p className="text-sm font-medium text-blue-800 mt-1">
                          取貨地址: {order.ebuy_store_name}
                        </p>
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-xl text-primary">
+                    <p className="font-bold text-lg text-primary">
                       {formatPrice(order.total_amount)}
                     </p>
                     <p className="text-xs text-gray-500 capitalize">
