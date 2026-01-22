@@ -85,6 +85,7 @@ func New(opts Options) *Server {
 	orderRepo := repository.NewOrderRepository(opts.DB)
 	orderHandler := handlers.OrderHandler{Orders: orderRepo}
 	orderHandler.Register(api, opts.AuthService)
+	orderHandler.RegisterAdmin(api, opts.AuthService)
 
 	if opts.AuthService != nil {
 		authHandler := handlers.AuthHandler{Service: opts.AuthService, Config: opts.Config}

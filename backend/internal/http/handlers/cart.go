@@ -78,17 +78,11 @@ func (h CartHandler) getOrCreateCartID(c *gin.Context) (string, error) {
 	// Anonymous: use X-Cart-ID if provided, else create new
 	cartIDStr := c.GetHeader("X-Cart-ID")
 	if cartIDStr != "" && isValidUUID(cartIDStr) {
-		// Check if exists, if not, create
+		// Check if exists
 		cart, err := h.Repo.GetCartByID(c.Request.Context(), cartIDStr)
 		if err != nil {
-			// If cart not found, create new one
-			if err.Error() == "cart not found" {
-				newCart, err := h.Repo.CreateCart(c.Request.Context(), nil)
-				if err != nil {
-					return "", err
-				}
-				return newCart.CartID, nil
-			}
+			// If cart not found, return error so client knows to clear invalid ID
+			// We do NOT auto-create here if the client specifically asked for an ID that doesn't exist
 			return "", err
 		}
 		if cart != nil {
@@ -112,7 +106,11 @@ func (h CartHandler) getOrCreateCartID(c *gin.Context) (string, error) {
 func (h CartHandler) GetCart(c *gin.Context) {
 	cartID, err := h.getOrCreateCartID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err.Error() == "cart not found" || err.Error() == "record not found" {
+			writeError(c, http.StatusNotFound, "CART_NOT_FOUND", "Cart not found", nil)
+		} else {
+			writeError(c, http.StatusBadRequest, "INVALID_CART", err.Error(), nil)
+		}
 		return
 	}
 
@@ -226,7 +224,11 @@ func (h CartHandler) AddItemToCart(c *gin.Context) {
 
 	cartID, err := h.getOrCreateCartID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err.Error() == "cart not found" || err.Error() == "record not found" {
+			writeError(c, http.StatusNotFound, "CART_NOT_FOUND", "Cart not found", nil)
+		} else {
+			writeError(c, http.StatusBadRequest, "INVALID_CART", err.Error(), nil)
+		}
 		return
 	}
 

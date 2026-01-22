@@ -1,22 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { logout } from '@/store/authSlice';
-import { toast } from 'sonner';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { callAPI } from '@/lib/api';
-import type { Order } from '@/lib/types';
-import { useUser } from '@/hooks/useUser';
-import { dict } from '@/lib/dict';
-import { Pencil, Check, X, CalendarIcon } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Button } from '@/components/ui/button';
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -25,12 +9,28 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { useUser } from '@/hooks/useUser';
+import { callAPI } from '@/lib/api';
+import { dict } from '@/lib/dict';
+import type { OrderWithItems } from '@/lib/types';
+import { cn } from "@/lib/utils";
+import { logout } from '@/store/authSlice';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { format } from "date-fns";
+import { CalendarIcon, Check, Pencil, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
 const profileSchema = z.object({
   username: z.string().optional(),
@@ -123,7 +123,7 @@ const ClientInfo = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-xl font-bold my-2">會員中心</h1>
 
-      <div className="bg-card p-3 rounded-md border shadow-sm space-y-1 max-w-md">
+      <div className="bg-card border-gray-400 border-[1px] p-3 rounded-md border shadow-sm space-y-1 max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">基本資料</h2>
           {!isEditing ? (
@@ -234,7 +234,7 @@ const ClientInfo = () => {
           </div>
         </Form>
       </div>
-      <Button variant="destructive" onClick={handleLogout} className="my-2 mr-0 ml-auto block">
+      <Button variant="destructive" onClick={handleLogout} className="my-2 mr-0 ml-auto block border border-gray-400 border-[1px]">
         登出
       </Button>
 
@@ -243,38 +243,71 @@ const ClientInfo = () => {
         {isLoading ? (
           <div className="p-4 text-center text-gray-500">載入中...</div>
         ) : orders.length === 0 ? (
-          <div className="bg-card p-8 rounded-lg border border-dashed text-center text-gray-500">
+          <div className="p-8 rounded-lg text-center text-gray-500 border-gray-400 border-[1px] bg-[#FFF4EB]">
             尚無訂單記錄
           </div>
         ) : (
-          <div className="space-y-2 max-w-2xl">
-            {orders.map((order: Order) => (
-              <div key={order.order_id} className="bg-card p-2 rounded-lg border-gray-300 border-[1px] transition-shadow">
+          <div className="space-y-4 max-w-2xl">
+            {orders.map((orderData: OrderWithItems) => {
+              const { order, items } = orderData;
+              return (
+              <div key={order.order_id} className="p-4 rounded-lg border-gray-400 border-[1px] bg-[#FFF4EB]">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="flex items-center">
-                      <p className="font-semibold text-md">#{order.order_number}</p>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-semibold text-lg">#{order.order_number}</p>
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-1">
                       {new Date(order.order_date).toLocaleString('zh-TW')}
                     </p>
+                    {order.ebuy_store_name && (
+                       <p className="text-sm font-medium text-blue-600 mt-1">
+                         取貨地址: {order.ebuy_store_name}
+                       </p>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-lg text-primary">
+                    <p className="font-bold text-xl text-primary">
                       {formatPrice(order.total_amount)}
                     </p>
                     <p className="text-xs text-gray-500 capitalize">
                       {/* {order.payment_method.replace('_', ' ')} */}
-                      聚易付
+                      支付方式: 聚易用
                     </p>
+                    
+                      <Badge className={getStatusColor(order.order_status)}>
+                        {dict[order.order_status as keyof typeof dict]}
+                      </Badge>
                   </div>
                 </div>
-                <div className="flex justify-end my-2">
-                  <Badge className={getStatusColor(order.order_status)}>
-                    {dict[order.order_status as keyof typeof dict]}
-                  </Badge>
+
+                <div className="mt-4 border-t pt-4">
+                    <h4 className="text-sm font-semibold mb-2">訂單內容</h4>
+                    <div className="space-y-2">
+                        {items && items.map((item) => (
+                            <div key={item.order_item_id} className="flex justify-between text-sm items-center bg-white border-gray-200 border-[1px] p-2 rounded">
+                                <div className="flex items-center space-x-3">
+                                   {item.product_image && (
+                                       <img 
+                                          src={item.product_image.startsWith('http') ? item.product_image : `${item.product_image}`} 
+                                          alt={item.product_name}
+                                          className="w-24 h-24 object-contain rounded" 
+                                       />
+                                   )}
+                                   <div>
+                                       <p className="font-medium">{item.product_name}</p>
+                                       {item.size_type && <p className="text-xs text-gray-500">尺寸: {dict[item.size_type as keyof typeof dict]}</p>}
+                                   </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-gray-600">x{item.quantity}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="text-sm text-gray-600">
+                
+                <div className="text-sm text-gray-600 mt-4 border-t pt-2 space-y-1">
                   <div className="flex justify-between">
                     <span>商品小計:</span>
                     <span>{formatPrice(order.subtotal_amount)}</span>
@@ -294,21 +327,22 @@ const ClientInfo = () => {
                 {order.payment_proof && (
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <p className="text-xs font-semibold text-gray-500 mb-2">付款憑證:</p>
-                    <div className="relative w-20 h-20 group">
+                    <div className="relative w-24 h-24 group">
                       <img
-                        src={`${import.meta.env.VITE_API_ROOT}/api${order.payment_proof}`}
+                        src={`${import.meta.env.VITE_API_ROOT}${order.payment_proof}`}
                         alt="Payment Proof"
                         className="w-full h-full object-cover rounded-md border shadow-sm cursor-pointer transition-transform hover:scale-105"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`${import.meta.env.VITE_API_ROOT}/api${order.payment_proof}`, '_blank');
+                          window.open(`${import.meta.env.VITE_API_ROOT}${order.payment_proof}`, '_blank');
                         }}
                       />
                     </div>
                   </div>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

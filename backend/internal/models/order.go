@@ -64,6 +64,9 @@ type Order struct {
 	CustomerNotes    *string        `json:"customer_notes"`
 	AdminNotes       *string        `json:"admin_notes"`
 	PaymentProof     *string        `json:"payment_proof"`
+	ClientName       string         `json:"client_name"`
+	ClientPhone      string         `json:"client_phone"`
+	EbuyStoreName    *string        `json:"ebuy_store_name"`
 }
 
 // OrderItem represents an item in an order.
@@ -81,6 +84,7 @@ type OrderItem struct {
 	SizeType        *SizeType     `json:"size_type"`
 	IsFreeItem      bool          `json:"is_free_item"`
 	ParentDiscountID *int64       `json:"parent_discount_id"`
+	ProductImage    *string       `json:"product_image"`
 }
 
 // OrderWithItems represents an order with its items.

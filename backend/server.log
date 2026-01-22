@@ -38,3 +38,19 @@ Upserted 154 sites into database
 2026-01-20T20:54:17.943+0800	ERROR	server/main.go:63	server stopped	{"error": "listen tcp 0.0.0.0:8080: bind: address already in use"}
 main.main.func1
 	/home/etblh/ryangel-website/backend/cmd/server/main.go:63
+Fetching ebuy sites from API...
+API response status: 200
+Fetched 160 sites from API
+Upserted 154 sites into database
+Fetching ebuy sites from API...
+API response status: 200
+Fetched 160 sites from API
+Upserted 154 sites into database
+Fetching ebuy sites from API...
+API response status: 200
+Fetched 160 sites from API
+Upserted 154 sites into database
+Fetching ebuy sites from API...
+API response status: 200
+Fetched 160 sites from API
+Upserted 154 sites into database

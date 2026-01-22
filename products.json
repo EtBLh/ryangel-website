@@ -1,0 +1,614 @@
+[
+    {
+        "name": "環遊世界",
+        "size": [
+            "v-rect",
+            "square"
+        ]
+    },
+    {
+        "name": "家肥屋潤",
+        "size": [
+            "v-rect",
+            "square",
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "家宅平安",
+        "size": [
+            "v-rect",
+            "square",
+            "fat-v-rect",
+            "big-square"
+        ]
+    },
+    {
+        "name": "出入平安",
+        "size": [
+            "v-rect",
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "煩事遠離朕 銀紙當被冚",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "蒸蒸日上",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "馬上暴富",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "厄運退散",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "身體Healthy 日日Happy 事事Lucky 大把Money",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "福",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "健康",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "招財",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "納福",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "招財豬堡",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "見字抖抖",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "升職加薪",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "大吉大利",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "逆風翻盤",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "情緒穩定",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "莫生氣",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "準時收工",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "蒸神爽利",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "大把錢洗",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "馬上戀愛",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "心平氣和",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "珠圓肉潤",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "新奇可愛",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "身體健康",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "肌肉暴漲",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "保持運動",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "財富自由",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "無焦無慮",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "唔L洗做",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "心想事成",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "發過豬頭",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "心花怒放",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "不勞而獲",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "躺贏",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "快樂長大",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "一索得寶",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "馬到成功",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "天降大運",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "無病息災",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "馬上行大運",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "啡嘗快樂",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "快樂加馬",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "睡滿滿",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "豚豚圓圓",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "財福兩旺",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "悠然自得",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "四季平安",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "幸福滿屋",
+        "size": [
+            "v-rect"
+        ]
+    },
+    {
+        "name": "勿多勞",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "學業進步 精叻醒目",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "磚心上班 開心下班",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "吉星高照 貴人超吉多",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "我命由我不由天",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "心中有佛 淡定老實",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "收工即走 盡忠職守",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "長賺長有 有車有樓",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "幸福加馬 愛神上線",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "情緒穩定 保持微笑",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "見字抖抖 廢水自由",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "天賦異稟 才華爆燈",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "身體健康 平安喜樂",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "食極唔肥 八舊腹肌",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "百毒不侵",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "生意興隆 撈乜都掂",
+        "size": [
+            "square",
+            "big-square"
+        ]
+    },
+    {
+        "name": "焦慮退散 淡淡定 有錢剩",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "無驚無險 又到飯點",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "所願皆成 得償所願",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "順從自己 Take It Easy",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "掂過碌蔗 起身就HEA",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "吃飽飽 睡香香",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "健康成長 日日開心",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "牛馬精神 富貴逼人",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "愛要及時 食要隨時",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "馬上好運",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "無憂無慮 HAKUNA MATATA",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "馬上升職",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "日日是好日 好好生活",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "咖啡在手 日日富有",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "幸福加馬",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "瞓到自然醒",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "幸福到家 相親相愛",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "銀行有錢 心中有愛",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "情深深雨濛濛 遇到桃花眼唔矇",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "食好瞓好 無曬煩惱",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "有吃有睡 人生不累",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "一步一腳印 健康成長",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "披荊斬棘 一家人最緊要齊齊整整",
+        "size": [
+            "square"
+        ]
+    },
+    {
+        "name": "豬事皆順",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "出入平安",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "開門大吉",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "平安喜樂",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "招財進寶",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "諸邪莫近",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "鵝福臨門",
+        "size": [
+            "fat-v-rect"
+        ]
+    },
+    {
+        "name": "發財暴富",
+        "size": [
+            "fat-v-rect"
+        ]
+    }
+]

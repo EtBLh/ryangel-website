@@ -1,8 +1,10 @@
 import { logout } from '../store/authSlice';
-
+import { clearCart } from '../store/cartSlice';
+import { adminLogout } from '../store/adminAuthSlice';
 
 import axios from 'axios';
 import { store } from '../store';
+import { toast } from 'sonner';
 
 const API_BASE = (import.meta.env.VITE_API_ROOT || 'https://ryangel.com/api');
 
@@ -11,9 +13,46 @@ interface ApiEndpoint {
   path: string;
   requiresCartId?: boolean;
   requiresAuth?: boolean;
+  requiresAdminAuth?: boolean;
 }
 
 export const api: Record<string, ApiEndpoint> = {
+  // Admin Endpoints
+  adminLogin: {
+    method: 'POST',
+    path: '/admin/login'
+  },
+  adminMe: {
+    method: 'GET',
+    path: '/admin/me',
+    requiresAdminAuth: true
+  },
+  adminLogout: {
+    method: 'POST',
+    path: '/admin/logout',
+    requiresAdminAuth: true
+  },
+  adminGetStats: {
+    method: 'GET',
+    path: '/admin/orders/stats',
+    requiresAdminAuth: true
+  },
+  adminGetOrders: {
+    method: 'GET',
+    path: '/admin/orders',
+    requiresAdminAuth: true
+  },
+  adminGetOrderItems: {
+    method: 'GET',
+    path: '/admin/orders/:orderId/items',
+    requiresAdminAuth: true
+  },
+  adminUpdateOrderStatus: {
+    method: 'PATCH',
+    path: '/admin/orders/:orderId/status',
+    requiresAdminAuth: true
+  },
+
   getProducts: {
     method: 'GET',
     path: '/products'
@@ -99,7 +138,7 @@ export const callAPI = async (
   data?: any
 ) => {
   const { method, path, requiresCartId } = api[endpoint];
-  const endpointConfig = api[endpoint] as ApiEndpoint & { requiresAuth?: boolean };
+  const endpointConfig = api[endpoint] as ApiEndpoint & { requiresAuth?: boolean; requiresAdminAuth?: boolean };
   let finalPath = path;
   const queryParams: Record<string, any> = {};
 
@@ -133,6 +172,15 @@ export const callAPI = async (
     }
   }
 
+  // Add Admin Authorization header if required
+  if (endpointConfig.requiresAdminAuth) {
+    // @ts-ignore
+    const token = state.adminAuth.token;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
   const url = `${API_BASE}${finalPath}`;
   try {
     const response = await axios({ 
@@ -145,8 +193,19 @@ export const callAPI = async (
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 401) {
-      store.dispatch(logout());
+      if (endpointConfig.requiresAdminAuth) {
+        store.dispatch(adminLogout());
+      } else {
+        store.dispatch(logout());
+      }
     }
+
+    const errData = error.response?.data;
+    if (error.response?.status === 404 && errData?.error?.code === 'CART_NOT_FOUND') {
+      store.dispatch(clearCart());
+      toast.error('Cart does not exist');
+    }
+
     throw error;
   }
 };

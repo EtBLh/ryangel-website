@@ -99,6 +99,7 @@ const Home = () => {
                     product.images[0].size_type === 'square' ? 'rotate-45 scale-[0.7]' : '',
                     product.images[0].size_type === 'big-square' ? 'rotate-45 scale-[0.8] -m-1' : '',
                     product.images[0].size_type === 'v-rect' ? 'w-[65%]' : '',
+                    product.images[0].size_type === 'fat-v-rect' ? 'w-[80%]' : '',
                   )}
                 />
                 <div className='py-1 w-full flex flex-row justify-between items-center'>

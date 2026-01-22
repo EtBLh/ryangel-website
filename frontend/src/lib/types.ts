@@ -79,6 +79,23 @@ export interface Order {
   payment_status: string;
   order_date: string;
   payment_proof?: string | null;
+  ebuy_store_name?: string;
+}
+
+export interface OrderItem {
+  order_item_id: number;
+  product_name: string;
+  product_sku: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  product_image?: string;
+  size_type?: string;
+}
+
+export interface OrderWithItems {
+    order: Order;
+    items: OrderItem[];
 }
 
 export interface EbuyStore {

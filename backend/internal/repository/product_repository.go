@@ -79,8 +79,39 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 		return nil, 0, fmt.Errorf("count products: %w", err)
 	}
 
-	// Data query with images
-	query := fmt.Sprintf(`
+	// Step 1: Query for product IDs first to handle pagination correctly with joins
+	idQuery := fmt.Sprintf(`
+		SELECT p.product_id
+		FROM products p
+		WHERE %s
+		ORDER BY p.created_at DESC
+		LIMIT $%d OFFSET $%d`,
+		whereClause, argCount, argCount+1)
+
+	args = append(args, pageSize, offset)
+
+	idRows, err := r.db.Query(ctx, idQuery, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("query product ids: %w", err)
+	}
+	defer idRows.Close()
+
+	var productIDs []int64
+	for idRows.Next() {
+		var id int64
+		if err := idRows.Scan(&id); err != nil {
+			return nil, 0, fmt.Errorf("scan product id: %w", err)
+		}
+		productIDs = append(productIDs, id)
+	}
+
+	if len(productIDs) == 0 {
+		return []models.ProductWithDetails{}, total, nil
+	}
+
+	// Step 2: Fetch full product details for the retrieved IDs
+	// Use ANY($1) for the ID list
+	query := `
 		SELECT
 			p.product_id, p.product_name, p.product_description, p.product_type, p.hashtag,
 			p.sku, p.price, p.compare_at_price, p.quantity, p.is_featured, p.is_active,
@@ -94,14 +125,10 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 			COALESCE(pi.is_primary, false) as is_primary
 		FROM products p
 		LEFT JOIN product_images pi ON p.product_id = pi.product_id
-		WHERE %s
-		ORDER BY p.created_at DESC, pi.sort_order ASC
-		LIMIT $%d OFFSET $%d`,
-		whereClause, argCount, argCount+1)
+		WHERE p.product_id = ANY($1)
+		ORDER BY p.created_at DESC, pi.sort_order ASC`
 
-	args = append(args, pageSize, offset)
-
-	rows, err := r.db.Query(ctx, query, args...)
+	rows, err := r.db.Query(ctx, query, productIDs)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query products: %w", err)
 	}
@@ -109,6 +136,9 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 
 	// Group products and their images
 	productMap := make(map[int64]*models.ProductWithDetails)
+	// Use a slice to maintain order from query
+	var orderedProducts []*models.ProductWithDetails
+	
 	for rows.Next() {
 		var p models.ProductWithDetails
 		var imageID int64
@@ -179,6 +209,7 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 				p.Images = []models.ProductImage{}
 			}
 			productMap[p.ID] = &p
+			orderedProducts = append(orderedProducts, &p)
 		}
 	}
 
@@ -186,10 +217,10 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 		return nil, 0, fmt.Errorf("rows error: %w", err)
 	}
 
-	// Convert map to slice
-	products := make([]models.ProductWithDetails, 0, len(productMap))
-	for _, product := range productMap {
-		products = append(products, *product)
+	// Convert ordered pointers to value slice
+	products := make([]models.ProductWithDetails, len(orderedProducts))
+	for i, p := range orderedProducts {
+		products[i] = *p
 	}
 
 	return products, total, nil

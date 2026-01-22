@@ -136,8 +136,8 @@ export default function Checkout() {
         try {
             await callAPI('createOrder', undefined, formData);
             dispatch(clearCart());
-            toast.success('Order placed successfully!');
-            navigate('/'); // Redirect to Home
+            toast.success('成功下單!');
+            navigate('/client-info'); // Redirect to Client Info
         } catch (err: any) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Failed to place order');
@@ -441,9 +441,9 @@ export default function Checkout() {
                                     <div className='flex flex-row'>
                                         <div className="flex flex-col gap-2 bg-white flex items-center justify-center rounded-lg border-[1rem] border-white shadow-sm">
                                             {/* Placeholder for QR Code */}
-                                            <span className='text-md'>聚易付支付碼</span>
+                                            <span className='text-md'>聚易用支付碼</span>
 
-                                            <img className='w-64 max-w-2/3' src="/api/media/ryangel-payment-qrcode.png" alt="scan this qrcode to pay" />
+                                            <img className='w-64 max-w-2/3' src="/media/ryangel-payment-qrcode2.png" alt="scan this qrcode to pay" />
                                         </div>
                                     </div>
                                     <p className='font-semibold'>付款時務必備註「下單聯絡電話」以作身份確認。</p>

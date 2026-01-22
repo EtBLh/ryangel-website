@@ -10,6 +10,12 @@ import './index.css'
 import ClientLayout from './pages/client/ClientLayout';
 import { Toaster } from 'sonner';
 
+// Admin imports
+import { AdminLayout } from './pages/admin/AdminLayout';
+import { AdminLogin } from './pages/admin/AdminLogin';
+import { Dashboard } from './pages/admin/Dashboard';
+import { Orders } from './pages/admin/Orders';
+
 function App() {
   return (
     <BrowserRouter>
@@ -22,6 +28,15 @@ function App() {
           <Route path="google-callback" element={<GoogleCallback />} />
           <Route path="/product/:productId" element={<ProductInfo />} />
         </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+           <Route path="login" element={<AdminLogin />} />
+           <Route path="dashboard" element={<Dashboard />} />
+           <Route path="orders" element={<Orders />} />
+           {/* Add more admin routes here */}
+           <Route index element={<Dashboard />} /> 
+        </Route>
       </Routes>
       <Toaster />
     </BrowserRouter>
@@ -29,3 +44,4 @@ function App() {
 }
 
 export default App;
+

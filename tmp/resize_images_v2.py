@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-INPUT_DIR = "actual_images"
+INPUT_DIR = "actual_images/updated"
 OUTPUT_DIR = "resized_images"
 TARGET_WIDTH = 600
 THUMB_WIDTH = 200
