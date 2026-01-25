@@ -1,1 +1,6 @@
 .env
+main
+server.log
+server
+./bin
+./bin/*
