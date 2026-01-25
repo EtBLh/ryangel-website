@@ -1,6 +1,17 @@
-import { useEffect, useState } from 'react';
-import { callAPI } from '@/lib/api';
-import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle
+} from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     Table,
     TableBody,
@@ -9,22 +20,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Badge } from '@/components/ui/badge'; 
+import { callAPI } from '@/lib/api';
+import { ChevronLeft, ChevronRight, Eye, MoreHorizontal } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Order {
     order_id: number;
@@ -65,6 +64,7 @@ export const Orders = () => {
         setIsLoading(true);
         try {
             // pass page query param
+            //@ts-ignore
             const data = await callAPI('adminGetOrders', undefined, undefined, { params: { page } });
             setOrders(data);
         } catch (error) {

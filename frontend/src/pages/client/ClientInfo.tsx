@@ -18,7 +18,7 @@ import {
 import { useUser } from '@/hooks/useUser';
 import { callAPI } from '@/lib/api';
 import { dict } from '@/lib/dict';
-import type { OrderWithItems } from '@/lib/types';
+import type { OrderItem } from '@/lib/types';
 import { cn } from "@/lib/utils";
 import { logout } from '@/store/authSlice';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -248,8 +248,11 @@ const ClientInfo = () => {
           </div>
         ) : (
           <div className="space-y-4 max-w-2xl">
-            {orders.map((orderData: OrderWithItems) => {
-              const { order, items } = orderData;
+            {orders.map((orderData: any) => {
+              // Backward compatibility: check if it's new structure {order, items} or old structure Order object
+              const order = orderData.order || orderData;
+              const items = orderData.items || [];
+              
               return (
               <div key={order.order_id} className="p-4 rounded-lg border-gray-400 border-[1px] bg-[#FFF4EB]">
                 <div className="flex justify-between items-start">
@@ -284,12 +287,12 @@ const ClientInfo = () => {
                 <div className="mt-4 border-t pt-4">
                     <h4 className="text-sm font-semibold mb-2">訂單內容</h4>
                     <div className="space-y-2">
-                        {items && items.map((item) => (
+                        {items && items.map((item: OrderItem) => (
                             <div key={item.order_item_id} className="flex justify-between text-sm items-center bg-white border-gray-200 border-[1px] p-2 rounded">
                                 <div className="flex items-center space-x-3">
                                    {item.product_image && (
                                        <img 
-                                          src={item.product_image.startsWith('http') ? item.product_image : `${item.product_image}`} 
+                                          src={item.product_image.startsWith('http') ? item.product_image : item.product_image.replace(/(\.[^.]+)$/, '-sm$1')} 
                                           alt={item.product_name}
                                           className="w-24 h-24 object-contain rounded" 
                                        />

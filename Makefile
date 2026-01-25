@@ -2,10 +2,28 @@ REMOTE_USER ?= root
 REMOTE_HOST ?= 165.232.166.176
 SSH_KEY ?= id_ed25519
 REMOTE_ROOT ?= /var/www/ryangel
+BACKEND_DEV_TMUX_SESSION ?= backend-dev
 
-.PHONY: all build build-frontend build-backend deploy deploy-frontend deploy-backend
+.PHONY: all build build-frontend build-backend deploy deploy-frontend deploy-backend dev-frontend stop-prod-backend start-prod-backend
 
 all: build deploy
+
+dev: dev-frontend dev-backend
+
+dev-frontend:
+	@echo "Starting frontend development server..."
+	cd frontend && npm install && npm run dev
+
+dev-backend:
+	@echo "Starting backend development server in tmux..."
+	@if tmux has-session -t "$(BACKEND_DEV_TMUX_SESSION)" 2>/dev/null; then \
+		echo "Session '$(BACKEND_DEV_TMUX_SESSION)' exists."; \
+		tmux send-keys -t "$(BACKEND_DEV_TMUX_SESSION)" C-c ' make run' Enter; \
+	else \
+		echo "Session '$(BACKEND_DEV_TMUX_SESSION)' does not exist. Creating a new one."; \
+		tmux new-session -d -s "$(BACKEND_DEV_TMUX_SESSION)"; \
+		tmux send-keys -t "$(BACKEND_DEV_TMUX_SESSION)" C-c ' make run' Enter; \
+	fi
 
 build: build-frontend build-backend
 

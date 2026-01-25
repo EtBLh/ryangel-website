@@ -18,6 +18,7 @@ type CreateOrderParams struct {
 	Email       string
 	Instagram   string
 	ProofPath   string
+	CartID      string // Optional: explicit cart ID
 }
 
 type OrderRepository struct {
@@ -37,8 +38,17 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, params CreateOrderPar
 
 	// 1. Get Cart
 	var cartID string
-	err = tx.QueryRow(ctx, "SELECT cart_id FROM cart WHERE client_id = $1", params.ClientID).Scan(&cartID)
-	if err != nil {
+	var errQuery error
+
+	if params.CartID != "" {
+		// Use provided Cart ID if verified
+		errQuery = tx.QueryRow(ctx, "SELECT cart_id FROM cart WHERE cart_id = $1 AND client_id = $2", params.CartID, params.ClientID).Scan(&cartID)
+	} else {
+		// Fallback: pick the most recently updated cart
+		errQuery = tx.QueryRow(ctx, "SELECT cart_id FROM cart WHERE client_id = $1 ORDER BY updated_at DESC LIMIT 1", params.ClientID).Scan(&cartID)
+	}
+	
+	if errQuery != nil {
 		return nil, fmt.Errorf("cart not found or empty")
 	}
 

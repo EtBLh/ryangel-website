@@ -202,6 +202,9 @@ func (h OrderHandler) createOrder(c *gin.Context) {
 		return
 	}
 
+	// Try to get explicit Cart-ID from header
+	cartID := c.GetHeader("X-Cart-ID")
+
 	order, err := h.Orders.CreateOrder(c.Request.Context(), repository.CreateOrderParams{
 		ClientID: client.ID,
 		EbuyStoreID: ebuyStoreID,
@@ -210,6 +213,7 @@ func (h OrderHandler) createOrder(c *gin.Context) {
 		Instagram: instagram,
 		Phone: phone,
 		ProofPath: proofPath,
+		CartID: cartID,
 	})
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "CREATE_ERROR", err.Error(), nil)
