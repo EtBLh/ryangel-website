@@ -22,7 +22,11 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load(".env")
+	envFile := ".env"
+	if os.Getenv("APP_ENV") == "production" {
+		envFile = ".env.prod"
+	}
+	_ = godotenv.Load(envFile)
 
 	cfg, err := config.FromEnv()
 	if err != nil {

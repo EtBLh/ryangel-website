@@ -56,7 +56,7 @@ func FromEnv() (*Config, error) {
 		MediaStoragePath: getEnv("MEDIA_STORAGE_PATH", "./media"),
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/auth/google/callback"),
+		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", "https://ryangel.com/api/auth/google/callback"),
 	}
 
 	if cfg.DBPassword == "" {
