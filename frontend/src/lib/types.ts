@@ -80,6 +80,7 @@ export interface Order {
   order_date: string;
   payment_proof?: string | null;
   ebuy_store_name?: string;
+  contact_phone?: string;
 }
 
 export interface OrderItem {

@@ -51,6 +51,7 @@ type Order struct {
 	DiscountCode     *string        `json:"discount_code"`
 	ShippingAddressID *int64        `json:"shipping_address_id"`
 	EbuyStoreID      *string        `json:"ebuy_store_id"`
+	ContactPhone     string         `json:"contact_phone"`
 	PaymentMethod    PaymentMethod  `json:"payment_method"`
 	PaymentStatus    PaymentStatus  `json:"payment_status"`
 	PaymentReference *string        `json:"payment_reference"`

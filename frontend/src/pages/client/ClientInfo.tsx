@@ -272,6 +272,11 @@ const ClientInfo = () => {
                             取貨地址: {order.ebuy_store_name}
                           </p>
                         )}
+                        {order.contact_phone && (
+                          <p className="text-sm text-gray-700 mt-1">
+                            聯絡電話: {order.contact_phone}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-lg text-primary">

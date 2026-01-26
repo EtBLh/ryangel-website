@@ -33,10 +33,16 @@ deploy-frontend:
 	@echo "Deploying frontend to $(REMOTE_HOST)..."
 	scp -r -i $(SSH_KEY) frontend/dist/* $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_ROOT)/frontend/
 
-deploy-backend:
+deploy-backend: stop-prod-backend upload-prod-backend start-prod-backend
+
+upload-prod-backend:
 	@echo "Deploying backend to $(REMOTE_HOST)..."
 	scp -i $(SSH_KEY) backend/bin/server $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_ROOT)/backend/
-	@echo "Backend uploaded. You may need to restart the service with: ssh -i $(SSH_KEY) $(REMOTE_USER)@$(REMOTE_HOST) 'systemctl restart ryangel-backend'"
+	scp -i $(SSH_KEY) backend/.env.prod $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_ROOT)/backend/.env.prod
+	scp -i $(SSH_KEY) backend/ryangel-backend.service $(REMOTE_USER)@$(REMOTE_HOST):/etc/systemd/system/ryangel-backend.service
+	@echo "Backend uploaded. You may need to restart the service with: ssh -i $(SSH_KEY) $(REMOTE_USER)@$(REMOTE_HOST) 'systemctl daemon-reload && systemctl restart ryangel-backend'"
+
+restart-prod-backend: stop-prod-backend start-prod-backend
 
 stop-prod-backend:
 	@echo "stopping backend in $(REMOTE_HOST)..."

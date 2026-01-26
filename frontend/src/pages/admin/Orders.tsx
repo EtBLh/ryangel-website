@@ -12,6 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Table,
     TableBody,
@@ -37,6 +38,7 @@ interface Order {
     client_name: string;
     client_phone: string;
     ebuy_store_name?: string;
+    contact_phone?: string;
 }
 
 interface OrderItem {
@@ -137,6 +139,7 @@ export const Orders = () => {
                             <TableHead>Date</TableHead>
                             <TableHead>Client</TableHead>
                             <TableHead>Store</TableHead>
+                            <TableHead>Contact</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Total</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -163,6 +166,7 @@ export const Orders = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>{order.ebuy_store_name || '-'}</TableCell>
+                                    <TableCell>{order.contact_phone || '-'}</TableCell>
                                     <TableCell>
                                         <Badge variant={order.order_status === 'pending' ? 'secondary' : 'default'}>
                                             {order.order_status}
@@ -205,27 +209,27 @@ export const Orders = () => {
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DialogContent className="max-w-3xl bg-white">
                     <DialogHeader>
-                        <DialogTitle>Order Details: {selectedOrder?.order_number}</DialogTitle>
+                        <DialogTitle className='text-xl font-semibold'>Order Detail: {selectedOrder?.order_number}</DialogTitle>
                     </DialogHeader>
-                    
-                    <div className="grid grid-cols-2 gap-4 py-4">
+                    <div className="grid grid-cols-2">
                         <div>
-                            <h4 className="font-semibold mb-2">Order Info</h4>
+                            <h4 className="font-semibold">Order Info</h4>
                             <p className="text-sm">Date: {selectedOrder && new Date(selectedOrder.order_date).toLocaleString()}</p>
                             <p className="text-sm">Status: {selectedOrder?.order_status}</p>
                             <p className="text-sm">Payment: {selectedOrder?.payment_method}</p>
                             <p className="text-sm">Store: {selectedOrder?.ebuy_store_name || "N/A"}</p>
                         </div>
                         <div>
-                             <h4 className="font-semibold mb-2">Customer</h4>
-                             <p className="text-sm">{selectedOrder?.client_name}</p>
-                             <p className="text-sm">{selectedOrder?.client_phone}</p>
-                             <h4 className="font-semibold mb-2 mt-2">Notes</h4>
+                             <h4 className="font-semibold">Customer</h4>
+                             <p className="text-sm">Name: {selectedOrder?.client_name}</p>
+                             <p className="text-sm">Account Phone: {selectedOrder?.client_phone}</p>
+                             <p className="text-sm">Contact Phone: {selectedOrder?.contact_phone || "N/A"}</p>
+                             <h4 className="font-semibold mt-2">Notes</h4>
                              <p className="text-sm italic">{selectedOrder?.customer_notes || "None"}</p>
                         </div>
                     </div>
 
-                    <div className="border rounded-md mt-4">
+                    <ScrollArea className="border rounded-md mt-4 max-h-[60vh]">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -268,7 +272,7 @@ export const Orders = () => {
                                 )}
                             </TableBody>
                         </Table>
-                    </div>
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
         </div>

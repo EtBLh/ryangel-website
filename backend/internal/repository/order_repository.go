@@ -14,7 +14,7 @@ type CreateOrderParams struct {
 	ClientID    int64
 	EbuyStoreID string
 	Name        string
-	Phone       string // Just for verification
+	Phone       string // Contact phone for this order
 	Email       string
 	Instagram   string
 	ProofPath   string
@@ -211,14 +211,14 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, params CreateOrderPar
 		INSERT INTO orders (
 			order_number, client_id, order_status, 
 			subtotal_amount, discount_amount, shipping_amount, tax_amount, total_amount,
-			ebuy_store_id, payment_method, payment_status, customer_notes, order_date
+			ebuy_store_id, payment_method, payment_status, customer_notes, order_date, contact_phone
 		) VALUES (
 			$1, $2, 'pending', 
 			$3, $4, $5, 0, $6, 
-			$7, 'mpay', 'pending', $8, NOW()
+			$7, 'mpay', 'pending', $8, NOW(), $9
 		) RETURNING order_id, order_date`,
 		orderNum, params.ClientID, subtotal, discountAmount, shippingAmount, totalAmount,
-		params.EbuyStoreID, customerNotes,
+		params.EbuyStoreID, customerNotes, params.Phone,
 	).Scan(&orderID, &orderDate)
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func (r *OrderRepository) GetByClientID(ctx context.Context, clientID int64) ([]
                o.discount_id, o.discount_code, o.shipping_address_id, o.ebuy_store_id,
                o.payment_method, o.payment_status, o.payment_reference, o.tracking_number,
                o.shipping_carrier, o.order_date, o.confirmed_at, o.shipped_at, o.delivered_at,
-               o.cancelled_at, o.customer_notes, o.admin_notes,
+               o.cancelled_at, o.customer_notes, o.admin_notes, COALESCE(o.contact_phone, ''),
 			   (SELECT proof_path FROM payment_proofs WHERE order_id = o.order_id ORDER BY created_at DESC LIMIT 1) as payment_proof,
 			   s.store_name
 		FROM orders o
@@ -308,7 +308,7 @@ func (r *OrderRepository) GetByClientID(ctx context.Context, clientID int64) ([]
             &o.DiscountID, &o.DiscountCode, &o.ShippingAddressID, &o.EbuyStoreID,
             &o.PaymentMethod, &o.PaymentStatus, &o.PaymentReference, &o.TrackingNumber,
             &o.ShippingCarrier, &o.OrderDate, &o.ConfirmedAt, &o.ShippedAt, &o.DeliveredAt,
-            &o.CancelledAt, &o.CustomerNotes, &o.AdminNotes, &o.PaymentProof,
+            &o.CancelledAt, &o.CustomerNotes, &o.AdminNotes, &o.ContactPhone, &o.PaymentProof,
             &o.EbuyStoreName,
 		); err != nil {
 			return nil, err
@@ -348,7 +348,7 @@ func (r *OrderRepository) GetOrders(ctx context.Context, limit, offset int) ([]*
                o.discount_id, o.discount_code, o.shipping_address_id, o.ebuy_store_id,
                o.payment_method, o.payment_status, o.payment_reference, o.tracking_number,
                o.shipping_carrier, o.order_date, o.confirmed_at, o.shipped_at, o.delivered_at,
-               o.cancelled_at, o.customer_notes, o.admin_notes,
+               o.cancelled_at, o.customer_notes, o.admin_notes, COALESCE(o.contact_phone, ''),
 			   (SELECT proof_path FROM payment_proofs WHERE order_id = o.order_id ORDER BY created_at DESC LIMIT 1) as payment_proof,
 			   c.username, c.phone, s.store_name
 		FROM orders o
@@ -372,7 +372,7 @@ func (r *OrderRepository) GetOrders(ctx context.Context, limit, offset int) ([]*
             &o.DiscountID, &o.DiscountCode, &o.ShippingAddressID, &o.EbuyStoreID,
             &o.PaymentMethod, &o.PaymentStatus, &o.PaymentReference, &o.TrackingNumber,
             &o.ShippingCarrier, &o.OrderDate, &o.ConfirmedAt, &o.ShippedAt, &o.DeliveredAt,
-            &o.CancelledAt, &o.CustomerNotes, &o.AdminNotes, &o.PaymentProof,
+            &o.CancelledAt, &o.CustomerNotes, &o.AdminNotes, &o.ContactPhone, &o.PaymentProof,
 			&o.ClientName, &o.ClientPhone, &o.EbuyStoreName,
 		); err != nil {
 			return nil, err

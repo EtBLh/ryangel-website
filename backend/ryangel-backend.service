@@ -7,7 +7,8 @@ Type=simple
 User=root
 WorkingDirectory=/var/www/ryangel/backend
 ExecStart=/var/www/ryangel/backend/server
-EnvironmentFile=/var/www/ryangel/backend/.env
+EnvironmentFile=/var/www/ryangel/backend/.env.prod
+Environment=APP_ENV=production
 Restart=always
 
 [Install]
