@@ -1,4 +1,8 @@
 .env
+.env.prod
+.env.dev
+.env.local
+
 main
 server.log
 server

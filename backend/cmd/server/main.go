@@ -26,7 +26,11 @@ func main() {
 	if os.Getenv("APP_ENV") == "production" {
 		envFile = ".env.prod"
 	}
-	_ = godotenv.Load(envFile)
+	if err := godotenv.Load(envFile); err != nil {
+		log.Printf("warning: Error loading %s: %v", envFile, err)
+	} else {
+		log.Printf("Loaded environment from %s", envFile)
+	}
 
 	cfg, err := config.FromEnv()
 	if err != nil {
