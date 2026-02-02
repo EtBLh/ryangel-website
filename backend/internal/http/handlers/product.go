@@ -81,11 +81,22 @@ func (h ProductHandler) ListProducts(c *gin.Context) {
 	sort := repository.ProductSort{Field: "created_at", Order: "desc"}
 	if sortStr := c.Query("sort"); sortStr != "" {
 		if strings.HasPrefix(sortStr, "-") {
-			sort.Field = strings.TrimPrefix(sortStr, "-")
-			sort.Order = "desc"
+			field := strings.TrimPrefix(sortStr, "-")
+            if field == "sales" || field == "popularity" {
+                sort.Field = "sales"
+                sort.Order = "desc"
+            } else {
+                sort.Field = field
+                sort.Order = "desc"
+            }
 		} else {
-			sort.Field = sortStr
-			sort.Order = "asc"
+			if sortStr == "sales" || sortStr == "popularity" {
+                 sort.Field = "sales"
+                 sort.Order = "desc" // popularity implies desc usually
+            } else {
+                 sort.Field = sortStr
+                 sort.Order = "asc"
+            }
 		}
 	}
 

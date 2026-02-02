@@ -66,8 +66,7 @@ export const Orders = () => {
         setIsLoading(true);
         try {
             // pass page query param
-            //@ts-ignore
-            const data = await callAPI('adminGetOrders', undefined, undefined, { params: { page } });
+            const data = await callAPI('adminGetOrders', { page });
             setOrders(data);
         } catch (error) {
             console.error("Failed to fetch orders", error);
@@ -218,6 +217,7 @@ export const Orders = () => {
                             <p className="text-sm">Status: {selectedOrder?.order_status}</p>
                             <p className="text-sm">Payment: {selectedOrder?.payment_method}</p>
                             <p className="text-sm">Store: {selectedOrder?.ebuy_store_name || "N/A"}</p>
+                            <p className="text-sm">Total Quantity: {isItemsLoading ? '...' : orderItems.reduce((acc, item) => acc + item.quantity, 0)}</p>
                         </div>
                         <div>
                              <h4 className="font-semibold">Customer</h4>
@@ -228,6 +228,21 @@ export const Orders = () => {
                              <p className="text-sm italic">{selectedOrder?.customer_notes || "None"}</p>
                         </div>
                     </div>
+
+                    {selectedOrder?.payment_proof && (
+                        <div className="mt-4">
+                            <h4 className="font-semibold mb-2">Payment Proof</h4>
+                            <div className="border rounded-md p-2 w-fit">
+                                <a href={selectedOrder.payment_proof} target="_blank" rel="noopener noreferrer">
+                                    <img 
+                                        src={selectedOrder.payment_proof} 
+                                        alt="Payment Proof" 
+                                        className="object-contain max-h-[90px] cursor-pointer"
+                                    />
+                                </a>
+                            </div>
+                        </div>
+                    )}
 
                     <ScrollArea className="border rounded-md mt-4 max-h-[60vh]">
                         <Table>

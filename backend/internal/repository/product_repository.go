@@ -80,13 +80,31 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 	}
 
 	// Step 1: Query for product IDs first to handle pagination correctly with joins
-	idQuery := fmt.Sprintf(`
+	baseQuery := `
 		SELECT p.product_id
 		FROM products p
-		WHERE %s
-		ORDER BY p.created_at DESC
-		LIMIT $%d OFFSET $%d`,
-		whereClause, argCount, argCount+1)
+	`
+	// If sorting by sales, join with order_items
+	if sort.Field == "sales" {
+		baseQuery += `
+		LEFT JOIN (
+			SELECT product_id, SUM(quantity) as total_sold
+			FROM order_items
+			GROUP BY product_id
+		) s ON p.product_id = s.product_id
+		`
+	}
+
+	idQuery := fmt.Sprintf(`%s
+		WHERE %s`, baseQuery, whereClause)
+
+	if sort.Field == "sales" {
+		idQuery += fmt.Sprintf(" ORDER BY COALESCE(s.total_sold, 0) DESC, p.created_at DESC")
+	} else {
+		idQuery += fmt.Sprintf(" ORDER BY p.created_at DESC, p.product_id DESC")
+	}
+
+	idQuery += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argCount, argCount+1)
 
 	args = append(args, pageSize, offset)
 
@@ -126,7 +144,7 @@ func (r *ProductRepository) ListProducts(ctx context.Context, filters ProductFil
 		FROM products p
 		LEFT JOIN product_images pi ON p.product_id = pi.product_id
 		WHERE p.product_id = ANY($1)
-		ORDER BY p.created_at DESC, pi.sort_order ASC`
+		ORDER BY p.created_at DESC, p.product_id DESC, pi.sort_order ASC`
 
 	rows, err := r.db.Query(ctx, query, productIDs)
 	if err != nil {
