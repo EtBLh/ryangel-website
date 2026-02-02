@@ -126,9 +126,33 @@ func (h CartHandler) GetCart(c *gin.Context) {
 		subtotal += item.UnitPrice * float64(item.Quantity)
 	}
 
-    // Default shipping fee
-    originalShippingFee := 5.0
-    finalShippingFee := 5.0
+    // Default shipping fee - fetch from DB config if possible?
+    // Since handlers do not talk to DB directly for config, we rely on Repo or manual query
+    // BUT CartRepository usually manages cart items.
+    // Ideally we inject a ConfigService. 
+    // FOR NOW: We assume defaults but try to query sys_config if we could.
+    // However, CartHandler has Repo *repository.CartRepository. 
+    // We should add GetConfig(key) to CartRepository or a new ConfigRepository.
+    
+    // To avoid rewriting main.go too much right now, we will add GetSystemConfig to CartRepository.
+    
+    feeEbuy, _ := h.Repo.GetSystemConfig("shipping_fee_ebuy")
+    feeSF, _ := h.Repo.GetSystemConfig("shipping_fee_sf")
+    
+    // Determine shipping method from query
+    shippingMethod := c.Query("shipping_method")
+    if shippingMethod == "" {
+        shippingMethod = "ebuy_store"
+    }
+
+    var originalShippingFee float64
+    if shippingMethod == "direct_address" {
+        originalShippingFee = feeSF
+    } else {
+        originalShippingFee = feeEbuy
+    }
+    
+    finalShippingFee := originalShippingFee
 	itemDiscountAmount := 0.0
 
     // Apply active auto-apply discounts
@@ -170,15 +194,25 @@ func (h CartHandler) GetCart(c *gin.Context) {
                          }
                     }
                 } else if d.DiscountType == "free_shipping" {
-					faiachunCount := 0
-					for _, item := range items {
-						if item.ProductType == "faiachun" {
-							faiachunCount += item.Quantity
-						}
-					}
-					if faiachunCount >= 4 {
-						finalShippingFee = 0.0
-					}
+                    discountCode := ""
+                    if d.DiscountCode != nil {
+                        discountCode = *d.DiscountCode
+                    }
+
+                    // Standardized Free Shipping Logic for both methods
+                    // 1. Ebuy Store (Code: AUTO_FREE_SHIPPING)
+                    if shippingMethod == "ebuy_store" && (discountCode == "AUTO_FREE_SHIPPING" || discountCode == "") {
+                        if d.MinimumOrderAmount != nil && subtotal >= *d.MinimumOrderAmount {
+                            finalShippingFee = 0.0
+                        }
+                    }
+
+                    // 2. Direct Address (Code: AUTO_FREE_SHIPPING_DIRECT)
+                    if shippingMethod == "direct_address" && discountCode == "AUTO_FREE_SHIPPING_DIRECT" {
+                         if d.MinimumOrderAmount != nil && subtotal >= *d.MinimumOrderAmount {
+                            finalShippingFee = 0.0
+                        }
+                    }
                 }
             }
         } else {

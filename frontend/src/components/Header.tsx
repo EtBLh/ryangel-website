@@ -13,7 +13,7 @@ import { useUser } from '@/hooks/useUser';
 import type { RootState } from '../store';
 import { useQuery } from '@tanstack/react-query';
 import { callAPI } from '../lib/api';
-import type { Cart } from '../lib/types';
+import type { Cart, PublicConfig } from '../lib/types';
 
 const Header = () => {
   const [authOpen, setAuthOpen] = useState(false);
@@ -34,6 +34,12 @@ const Header = () => {
     queryKey: ['cart', cartId],
     queryFn: () => callAPI('getCart'),
     enabled: !!cartId,
+  });
+
+  const { data: config } = useQuery<PublicConfig>({
+    queryKey: ['publicConfig'],
+    queryFn: () => callAPI('getPublicConfig'),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const cartItemCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
@@ -59,9 +65,9 @@ const Header = () => {
   return (
     <>
       <header className="bg-[var(--background)] mt-0 md:mb-2 flex flex-col justify-center px-2 py-2 fixed top-0 left-0 right-0 z-10 border-b-[1px] border-gray-400 min-h-[60px]">
-        {showNotification && (
+        {showNotification && config?.banner_message && (
           <div className="bg-[#c11e02] text-white px-4 py-1.5 flex justify-between items-center text-xs md:text-sm -mx-2 -mt-2 md:mb-2">
-             <div className="flex-1 text-center font-medium">新年期間不限款式及尺寸買三送一，買滿三張免運費</div>
+             <div className="flex-1 text-center font-medium">{config.banner_message}</div>
              <button onClick={() => setShowNotification(false)} className="text-white hover:text-gray-300">
                <X className="h-4 w-4" />
              </button>

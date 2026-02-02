@@ -65,6 +65,9 @@ func New(opts Options) *Server {
 	healthHandler := handlers.HealthHandler{DB: opts.DB}
 	healthHandler.Register(api)
 
+    configHandler := handlers.ConfigHandler{DB: opts.DB}
+    configHandler.Register(api)
+
 	productRepo := repository.NewProductRepository(opts.DB)
 	productHandler := handlers.ProductHandler{Repo: productRepo, Config: opts.Config}
 	productHandler.Register(api)

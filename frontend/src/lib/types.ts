@@ -119,3 +119,10 @@ export interface Client {
   activated: boolean;
   date_of_birth?: string | null;
 }
+
+export interface PublicConfig {
+  banner_message?: string;
+  shipping_fee_ebuy?: string;
+  shipping_fee_sf?: string;
+  [key: string]: string | undefined;
+}

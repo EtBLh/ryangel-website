@@ -129,6 +129,10 @@ export const api: Record<string, ApiEndpoint> = {
     method: 'POST',
     path: '/clients/logout',
     requiresAuth: true
+  },
+  getPublicConfig: {
+    method: 'GET',
+    path: '/config/public'
   }
 };
 

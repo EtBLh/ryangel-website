@@ -128,14 +128,37 @@ func (h OrderHandler) createOrder(c *gin.Context) {
 	}
 
 	// Parse multipart form
+	shippingMethod := c.PostForm("shipping_method") // "ebuy_store" or "direct_address"
 	ebuyStoreID := c.PostForm("ebuy_store_id")
+	address := c.PostForm("address")
 	name := c.PostForm("name")
 	email := c.PostForm("email")
 	instagram := c.PostForm("instagram")
 	phone := c.PostForm("phone") // verification only
 
-	if ebuyStoreID == "" || name == "" {
-		writeError(c, http.StatusBadRequest, "INVALID_DATA", "Missing required fields (store, name)", nil)
+	// Validate shipping method
+	if shippingMethod == "" {
+		shippingMethod = "ebuy_store" // default for backward compatibility
+	}
+
+	if shippingMethod != "ebuy_store" && shippingMethod != "direct_address" {
+		writeError(c, http.StatusBadRequest, "INVALID_DATA", "Invalid shipping method", nil)
+		return
+	}
+
+	// Validate based on shipping method
+	if shippingMethod == "ebuy_store" && ebuyStoreID == "" {
+		writeError(c, http.StatusBadRequest, "INVALID_DATA", "Missing ebuy_store_id for ebuy_store shipping", nil)
+		return
+	}
+
+	if shippingMethod == "direct_address" && address == "" {
+		writeError(c, http.StatusBadRequest, "INVALID_DATA", "Missing address for direct_address shipping", nil)
+		return
+	}
+
+	if name == "" {
+		writeError(c, http.StatusBadRequest, "INVALID_DATA", "Missing required field: name", nil)
 		return
 	}
 
@@ -207,7 +230,9 @@ func (h OrderHandler) createOrder(c *gin.Context) {
 
 	order, err := h.Orders.CreateOrder(c.Request.Context(), repository.CreateOrderParams{
 		ClientID: client.ID,
+		ShippingMethod: shippingMethod,
 		EbuyStoreID: ebuyStoreID,
+		Address: address,
 		Name: name,
 		Email: email,
 		Instagram: instagram,

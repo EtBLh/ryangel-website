@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -251,4 +252,25 @@ func (r *CartRepository) GetCartIDByCartItemID(ctx context.Context, cartItemID i
 		return "", err
 	}
 	return cartID, nil
+}
+
+// GetSystemConfig fetches a float configuration value from sys_config
+func (r *CartRepository) GetSystemConfig(key string) (float64, error) {
+	var valStr string
+	query := "SELECT config_value FROM sys_config WHERE config_key = $1"
+	err := r.db.QueryRow(context.Background(), query, key).Scan(&valStr)
+	if err != nil {
+        // Fallback defaults
+        if key == "shipping_fee_ebuy" { return 5.0, nil }
+        if key == "shipping_fee_sf" { return 40.0, nil }
+		return 0.0, err
+	}
+    
+    val, err := strconv.ParseFloat(valStr, 64)
+    if err != nil {
+        if key == "shipping_fee_ebuy" { return 5.0, nil }
+        if key == "shipping_fee_sf" { return 40.0, nil }
+        return 0.0, err
+    }
+    return val, nil
 }

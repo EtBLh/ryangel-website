@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,14 +12,16 @@ import (
 )
 
 type CreateOrderParams struct {
-	ClientID    int64
-	EbuyStoreID string
-	Name        string
-	Phone       string // Contact phone for this order
-	Email       string
-	Instagram   string
-	ProofPath   string
-	CartID      string // Optional: explicit cart ID
+	ClientID       int64
+	ShippingMethod string // "ebuy_store" or "direct_address"
+	EbuyStoreID    string
+	Address        string // For direct_address method
+	Name           string
+	Phone          string // Contact phone for this order
+	Email          string
+	Instagram      string
+	ProofPath      string
+	CartID         string // Optional: explicit cart ID
 }
 
 type OrderRepository struct {
@@ -91,9 +94,31 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, params CreateOrderPar
 		return nil, fmt.Errorf("cart is empty")
 	}
 
+	// Fetch Config for Shipping Fees
+	var feeEbuy, feeSF float64 = 5.0, 40.0 // Defaults
+
+	// Helper to get config within transaction
+	_ = tx.QueryRow(ctx, "SELECT config_value FROM sys_config WHERE config_key = 'shipping_fee_ebuy'").Scan(&feeEbuy)
+	// If it was stored as string, we might need conversion - assuming TEXT above, so lets scan to string first
+	var feeEbuyStr, feeSFStr string
+	if err := tx.QueryRow(ctx, "SELECT config_value FROM sys_config WHERE config_key = 'shipping_fee_ebuy'").Scan(&feeEbuyStr); err == nil {
+		if val, err := strconv.ParseFloat(feeEbuyStr, 64); err == nil {
+			feeEbuy = val
+		}
+	}
+	if err := tx.QueryRow(ctx, "SELECT config_value FROM sys_config WHERE config_key = 'shipping_fee_sf'").Scan(&feeSFStr); err == nil {
+		if val, err := strconv.ParseFloat(feeSFStr, 64); err == nil {
+			feeSF = val
+		}
+	}
+
 	// Calculate Discounts & Shipping (Replicating logic from CartHandler)
 	itemDiscountAmount := 0.0
-	finalShippingFee := 5.0
+	// Set shipping fee based on shipping method
+	finalShippingFee := feeEbuy // dynamic ebuy fee
+	if params.ShippingMethod == "direct_address" {
+		finalShippingFee = feeSF // dynamic sf/hk fee
+	}
 
 	// Fetch active auto-apply discounts within the transaction
 	discountQuery := `
@@ -165,14 +190,25 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, params CreateOrderPar
 					}
 				}
 			} else if d.DiscountType == "free_shipping" {
-				faiachunCount := 0
-				for _, item := range items {
-					if item.ProductType == "faiachun" {
-						faiachunCount += item.Quantity
+				// Check if discount applies to current shipping method
+				discountCode := ""
+				if d.DiscountCode != nil {
+					discountCode = *d.DiscountCode
+				}
+
+				// Standardized Free Shipping Logic
+				// 1. Ebuy Store (Code: AUTO_FREE_SHIPPING)
+				if params.ShippingMethod == "ebuy_store" && discountCode == "AUTO_FREE_SHIPPING" {
+					if d.MinimumOrderAmount != nil && subtotal >= *d.MinimumOrderAmount {
+						finalShippingFee = 0.0
 					}
 				}
-				if faiachunCount >= 4 {
-					finalShippingFee = 0.0
+
+				// 2. Direct Address (Code: AUTO_FREE_SHIPPING_DIRECT)
+				if params.ShippingMethod == "direct_address" && discountCode == "AUTO_FREE_SHIPPING_DIRECT" {
+					if d.MinimumOrderAmount != nil && subtotal >= *d.MinimumOrderAmount {
+						finalShippingFee = 0.0
+					}
 				}
 			}
 		}
@@ -194,7 +230,13 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, params CreateOrderPar
 	// Generate Order Number: ORD-YYYYMMDD-Random
 	orderNum := fmt.Sprintf("ORD-%s-%d", time.Now().Format("20060102"), time.Now().Unix()%100000)
 
-	customerNotes := fmt.Sprintf("Store: %s\nContact: %s\nIG: %s\nEmail: %s", params.EbuyStoreID, params.Name, params.Instagram, params.Email)
+	// Build customer notes based on shipping method
+	var customerNotes string
+	if params.ShippingMethod == "ebuy_store" {
+		customerNotes = fmt.Sprintf("Store: %s\nContact: %s\nIG: %s\nEmail: %s", params.EbuyStoreID, params.Name, params.Instagram, params.Email)
+	} else {
+		customerNotes = fmt.Sprintf("Address: %s\nContact: %s\nIG: %s\nEmail: %s", params.Address, params.Name, params.Instagram, params.Email)
+	}
 
 	shippingAmount := finalShippingFee
 	discountAmount := itemDiscountAmount
@@ -202,23 +244,30 @@ func (r *OrderRepository) CreateOrder(ctx context.Context, params CreateOrderPar
 	if discountAmount > subtotal {
 		discountAmount = subtotal
 	}
-	
+
 	totalAmount := subtotal - discountAmount + shippingAmount
 
 	var orderID int64
 	var orderDate time.Time
+
+	// Prepare values for INSERT - handle NULL for ebuy_store_id when using direct_address
+	var ebuyStoreIDPtr *string
+	if params.ShippingMethod == "ebuy_store" && params.EbuyStoreID != "" {
+		ebuyStoreIDPtr = &params.EbuyStoreID
+	}
+
 	err = tx.QueryRow(ctx, `
 		INSERT INTO orders (
-			order_number, client_id, order_status, 
+			order_number, client_id, order_status,
 			subtotal_amount, discount_amount, shipping_amount, tax_amount, total_amount,
-			ebuy_store_id, payment_method, payment_status, customer_notes, order_date, contact_phone
+			ebuy_store_id, shipping_method, payment_method, payment_status, customer_notes, order_date, contact_phone
 		) VALUES (
-			$1, $2, 'pending', 
-			$3, $4, $5, 0, $6, 
-			$7, 'mpay', 'pending', $8, NOW(), $9
+			$1, $2, 'pending',
+			$3, $4, $5, 0, $6,
+			$7, $8::shipping_method_enum, 'mpay', 'pending', $9, NOW(), $10
 		) RETURNING order_id, order_date`,
 		orderNum, params.ClientID, subtotal, discountAmount, shippingAmount, totalAmount,
-		params.EbuyStoreID, customerNotes, params.Phone,
+		ebuyStoreIDPtr, params.ShippingMethod, customerNotes, params.Phone,
 	).Scan(&orderID, &orderDate)
 	if err != nil {
 		return nil, err

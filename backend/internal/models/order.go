@@ -36,6 +36,14 @@ const (
 	PaymentStatusRefunded PaymentStatus = "refunded"
 )
 
+// ShippingMethod represents the shipping method used.
+type ShippingMethod string
+
+const (
+	ShippingMethodEbuyStore     ShippingMethod = "ebuy_store"
+	ShippingMethodDirectAddress ShippingMethod = "direct_address"
+)
+
 // Order represents an order in the system.
 type Order struct {
 	OrderID          int64          `json:"order_id"`
@@ -49,9 +57,10 @@ type Order struct {
 	TotalAmount      float64        `json:"total_amount"`
 	DiscountID       *int64         `json:"discount_id"`
 	DiscountCode     *string        `json:"discount_code"`
-	ShippingAddressID *int64        `json:"shipping_address_id"`
-	EbuyStoreID      *string        `json:"ebuy_store_id"`
-	ContactPhone     string         `json:"contact_phone"`
+	ShippingAddressID *int64         `json:"shipping_address_id"`
+	EbuyStoreID      *string         `json:"ebuy_store_id"`
+	ShippingMethod   ShippingMethod  `json:"shipping_method"`
+	ContactPhone     string          `json:"contact_phone"`
 	PaymentMethod    PaymentMethod  `json:"payment_method"`
 	PaymentStatus    PaymentStatus  `json:"payment_status"`
 	PaymentReference *string        `json:"payment_reference"`
